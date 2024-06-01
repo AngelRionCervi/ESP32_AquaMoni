@@ -1,37 +1,5 @@
 #include "ServerTask.h"
 
-void loadConfig() {
-  File fileConfig = SD.open(FILE_CONFIG, "r");
-
-  if (!fileConfig) {
-    Serial.println("Could not open config.jso [loadConfig]");
-  }
-
-  String configString;
-  while (fileConfig.available()) {
-    configString += fileConfig.readString();
-  }
-
-  JsonDocument configJson;
-  deserializeJson(configJson, configString);
-
-  JsonArray deviceArray = configJson["devices"];
-
-  for (int i = 0; i < deviceArray.size(); i++) {
-    JsonObject deviceObj = deviceArray[i];
-    const char* name = deviceObj["name"].as<const char*>();
-    const char* ip = deviceObj["ip"].as<const char*>();
-    unsigned int button = deviceObj["button"].as<unsigned int>();
-    JsonVariant schedule = deviceObj["schedule"].as<JsonVariant>();
-
-    JsonDocument scheduleCopy = schedule;
-
-    Device newDevice(ip, name, ledMap[button], buttonMap[button], scheduleCopy,
-                     wifiClient);
-    devices.emplace(name, newDevice);
-  }
-}
-
 void handleLast() {
   File fileLast = SD.open(FILE_LAST, "r");
   if (!fileLast) {
@@ -153,7 +121,7 @@ void handleUpdateConfig() {
 
   server.send(200, "text/plain", "Config updated, resetting...");
   Serial.println("Config updated");
-  resetFunc();
+  ESP.restart();
 }
 
 void handleNotFound() {
@@ -283,7 +251,7 @@ void ServerTaskCode(void* pvParameters) {
   Serial.print("ServerTask running on core ");
   Serial.println(xPortGetCoreID());
 
-  loadConfig();
+  // loadConfig();
 
   if (MDNS.begin("esp32")) {
     Serial.println("MDNS responder started");
@@ -291,6 +259,10 @@ void ServerTaskCode(void* pvParameters) {
 
   Serial.print("Server address: ");
   Serial.println(WiFi.localIP());
+
+  // if (!server.authenticate("admin", serverPass.c_str())) {
+  //   return server.requestAuthentication();
+  // }
 
   server.on("/last", HTTP_GET, handleLast);
   server.on("/historical", HTTP_GET, handleHistorical);

@@ -12,6 +12,10 @@ WebServer server(80);
 int scheduleUpdatePeriode = 1000;
 int scheduleUpdateLastMillis = 0;
 
+String wifiSSID;
+String wifiPass;
+String serverPass;
+
 std::map<int, int> buttonMap = {
     { 0, BUTTON_0_PIN },
     { 1, BUTTON_1_PIN },

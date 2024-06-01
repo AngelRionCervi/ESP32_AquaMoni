@@ -20,6 +20,8 @@ extern WiFiClient wifiClient;
 extern WebServer server;
 extern int scheduleUpdatePeriode;
 extern int scheduleUpdateLastMillis;
-extern void (*resetFunc)(void);
+extern String wifiSSID;
+extern String wifiPass;
+extern String serverPass;
 
 #endif

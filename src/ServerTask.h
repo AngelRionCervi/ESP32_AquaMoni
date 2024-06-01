@@ -9,8 +9,6 @@
 #include "secrets.h"
 #include "utils.h"
 
-void loadConfig();
-
 void handleLast();
 
 void handleHistorical();

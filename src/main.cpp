@@ -18,14 +18,12 @@
 #include "global.h"
 #include "secrets.h"
 
-void (*resetFunc)(void) = 0;
-
 TaskHandle_t SensorTask;
 TaskHandle_t ServerTask;
 
 void setupWifi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(SECRET_SSID, SECRET_PASS);
+  WiFi.begin(wifiSSID, wifiPass);
   Serial.print("WiFi Connecting...");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -55,14 +53,63 @@ void setupSD() {
   }
 }
 
+JsonDocument getConfig() {
+  File fileConfig = SD.open(FILE_CONFIG, "r");
+
+  if (!fileConfig) {
+    Serial.println("Could not open config.jso [loadConfig]");
+  }
+
+  String configString;
+  while (fileConfig.available()) {
+    configString += fileConfig.readString();
+  }
+
+  JsonDocument configJson;
+  deserializeJson(configJson, configString);
+
+  return configJson;
+}
+
+void loadConfig(JsonDocument& configJson) {
+  JsonObject secretsJson = configJson["secrets"];
+  wifiSSID = secretsJson["wifiSSID"].as<String>();
+  wifiPass = secretsJson["wifiPass"].as<String>();
+  serverPass = secretsJson["serverPass"].as<String>();
+
+  Serial.println("SERVER PASS: ");
+  Serial.println(serverPass);
+}
+
+void setupDevices(JsonDocument& configJson) {
+  JsonArray deviceArray = configJson["devices"];
+
+  for (int i = 0; i < deviceArray.size(); i++) {
+    JsonObject deviceObj = deviceArray[i];
+    const char* name = deviceObj["name"].as<const char*>();
+    const char* ip = deviceObj["ip"].as<const char*>();
+    unsigned int button = deviceObj["button"].as<unsigned int>();
+    JsonVariant schedule = deviceObj["schedule"].as<JsonVariant>();
+
+    JsonDocument scheduleCopy = schedule;
+
+    Device newDevice(ip, name, ledMap[button], buttonMap[button], scheduleCopy,
+                     wifiClient);
+    devices.emplace(name, newDevice);
+  }
+}
+
 void setup(void) {
   Serial.begin(115200);
-  while (!Serial) {
+  while (!Serial) {  // to remove for prod
   };
 
   setupSD();
+  JsonDocument config = getConfig();
+  loadConfig(config);
   setupWifi();
   setupDateTime();
+  setupDevices(config);
 
   Serial.println("Starting tasks...");
 
