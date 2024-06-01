@@ -1,22 +1,24 @@
-#include <WiFi.h>
-#include <WiFiClient.h>
-#include <WebServer.h>
-#include <ESPmDNS.h>
 #include <ADebouncer.h>
-#include <SPI.h>
-#include <SD.h>
 #include <ArduinoJson.h>
 #include <ESPDateTime.h>
-#include <unordered_map>
-#include <map>
-#include "secrets.h"
-#include "constants.h"
-#include "Device.h"
-#include "global.h"
-#include "ServerTask.h"
-#include "SensorTask.h"
+#include <ESPmDNS.h>
+#include <SD.h>
+#include <SPI.h>
+#include <WebServer.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
 
-void(* resetFunc) (void) = 0;
+#include <map>
+#include <unordered_map>
+
+#include "Device.h"
+#include "SensorTask.h"
+#include "ServerTask.h"
+#include "constants.h"
+#include "global.h"
+#include "secrets.h"
+
+void (*resetFunc)(void) = 0;
 
 TaskHandle_t SensorTask;
 TaskHandle_t ServerTask;
@@ -55,7 +57,8 @@ void setupSD() {
 
 void setup(void) {
   Serial.begin(115200);
-  while (!Serial) {};
+  while (!Serial) {
+  };
 
   setupSD();
   setupWifi();
@@ -64,25 +67,25 @@ void setup(void) {
   Serial.println("Starting tasks...");
 
   xTaskCreatePinnedToCore(
-    ServerTaskCode, /* Task function. */
-    "ServerTask",   /* name of task. */
-    10000,          /* Stack size of task */
-    NULL,           /* parameter of the task */
-    1,              /* priority of the task */
-    &ServerTask,    /* Task handle to keep track of created task */
-    0);             /* pin task to core 0 */
+      ServerTaskCode, /* Task function. */
+      "ServerTask",   /* name of task. */
+      10000,          /* Stack size of task */
+      NULL,           /* parameter of the task */
+      1,              /* priority of the task */
+      &ServerTask,    /* Task handle to keep track of created task */
+      0);             /* pin task to core 0 */
 
   xTaskCreatePinnedToCore(
-    SensorTaskCode, /* Task function. */
-    "SensorTask",   /* name of task. */
-    10000,          /* Stack size of task */
-    NULL,           /* parameter of the task */
-    1,              /* priority of the task */
-    &SensorTask,    /* Task handle to keep track of created task */
-    1);             /* pin task to core 0 */
+      SensorTaskCode, /* Task function. */
+      "SensorTask",   /* name of task. */
+      10000,          /* Stack size of task */
+      NULL,           /* parameter of the task */
+      1,              /* priority of the task */
+      &SensorTask,    /* Task handle to keep track of created task */
+      1);             /* pin task to core 0 */
 }
 
 void loop(void) {
   // server.handleClient();
-  delay(2);  //allow the cpu to switch to other tasks
+  delay(2);  // allow the cpu to switch to other tasks
 }
