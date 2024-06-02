@@ -76,9 +76,7 @@ void loadConfig(JsonDocument& configJson) {
   wifiSSID = secretsJson["wifiSSID"].as<String>();
   wifiPass = secretsJson["wifiPass"].as<String>();
   serverPass = secretsJson["serverPass"].as<String>();
-
-  Serial.println("SERVER PASS: ");
-  Serial.println(serverPass);
+  serverAuthCookie = secretsJson["serverAuthCookie"].as<String>();
 }
 
 void setupDevices(JsonDocument& configJson) {

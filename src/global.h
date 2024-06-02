@@ -23,5 +23,6 @@ extern int scheduleUpdateLastMillis;
 extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
+extern String serverAuthCookie;
 
 #endif

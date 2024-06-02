@@ -27,6 +27,12 @@ void handleGetConfig();
 
 void handleGetScheduleState();
 
+void handleLogin();
+
 void ServerTaskCode(void* pvParameters);
 
 void checkDevices();
+
+bool isAuthentified();
+
+JsonDocument deserializePost(String body);

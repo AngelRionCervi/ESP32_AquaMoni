@@ -1,6 +1,10 @@
 #include "ServerTask.h"
 
 void handleLast() {
+  if (!isAuthentified()) {
+    return;
+  }
+
   File fileLast = SD.open(FILE_LAST, "r");
   if (!fileLast) {
     Serial.println("Could not open last.jso for sending");
@@ -26,6 +30,10 @@ void handleLast() {
 }
 
 void handleHistorical() {
+  if (!isAuthentified()) {
+    return;
+  }
+
   if (server.argName(0) != "r") {
     handleNotFound();
   }
@@ -38,7 +46,7 @@ void handleHistorical() {
   String* days = splitString(argValue, ',', daysLength);
 
   if (daysLength > 7) {
-    server.send(500, "text/plain", "payload too big");
+    server.send(500, "text/plain", "Payload too big !");
 
     return;
   }
@@ -83,30 +91,11 @@ void handleHistorical() {
 }
 
 void handleUpdateConfig() {
-  if (server.argName(0) != "pass" || server.arg(0) != CONFIG_PASS) {
-    handleNotFound();
+  if (!isAuthentified()) {
     return;
-  };
-
-  JsonDocument newConfigJson;
-  DeserializationError err = deserializeJson(newConfigJson, server.arg(1));
-
-  switch (err.code()) {
-    case DeserializationError::Ok:
-      break;
-    case DeserializationError::InvalidInput:
-      server.send(500, "text/plain", "Invalid input");
-      break;
-    case DeserializationError::NoMemory:
-      server.send(500, "text/plain", "Not enough memory");
-      break;
-    default:
-      server.send(500, "text/plain", "Deserialization failed");
-      break;
   }
 
-  if (err.code() != DeserializationError::Ok)
-    return;
+  JsonDocument newConfigJson = deserializePost(server.arg(0));
 
   File fileConfig = SD.open(FILE_CONFIG, "w");
 
@@ -138,6 +127,10 @@ void handleNotFound() {
 }
 
 void handleDeviceManualToggle() {
+  if (!isAuthentified()) {
+    return;
+  }
+
   if (server.argName(0) != "name") {
     handleNotFound();
     return;
@@ -169,6 +162,10 @@ void handleDeviceManualToggle() {
 }
 
 void handleScheduleManualToggle() {
+  if (!isAuthentified()) {
+    return;
+  }
+
   areSchedulesDisabled = !areSchedulesDisabled;
 
   JsonDocument donePayloadJson;
@@ -184,6 +181,10 @@ void handleScheduleManualToggle() {
 }
 
 void handleGetDevicesState() {
+  if (!isAuthentified()) {
+    return;
+  }
+
   JsonDocument devicesStateJson;
   JsonArray devicesStateArray = devicesStateJson.to<JsonArray>();
 
@@ -208,6 +209,10 @@ void handleGetDevicesState() {
 }
 
 void handleGetConfig() {
+  if (!isAuthentified()) {
+    return;
+  }
+
   File fileConfig = SD.open(FILE_CONFIG, "r");
 
   if (!fileConfig) {
@@ -235,6 +240,10 @@ void handleGetConfig() {
 }
 
 void handleGetScheduleState() {
+  if (!isAuthentified()) {
+    return;
+  }
+
   JsonDocument getScheduleStateResponseJson;
   getScheduleStateResponseJson["data"] = areSchedulesDisabled;
   getScheduleStateResponseJson["status"] = "success";
@@ -247,11 +256,35 @@ void handleGetScheduleState() {
   return;
 }
 
+void handleLogin() {
+  if (server.hasArg("DISCONNECT")) {
+    Serial.println("Disconnection");
+    server.sendHeader("Cache-Control", "no-cache");
+    server.sendHeader("Set-Cookie", String(serverAuthCookie) + "=0");
+    return;
+  }
+  if (server.arg(0)) {
+    JsonDocument authBody = deserializePost(server.arg(0));
+
+    if (authBody["pass"] == serverPass) {
+      server.sendHeader("Cache-Control", "no-cache");
+      server.sendHeader("Set-Cookie", String(serverAuthCookie) + "=1");
+      Serial.println("Log in Successful");
+      server.send(200, "text/html", "Log in Successful !");
+      return;
+    }
+    Serial.println("Log in Failed");
+    server.send(401, "text/html", "Log in Failed !");
+  }
+
+  server.send(401, "text/html", "No credentials provided !");
+
+  return;
+}
+
 void ServerTaskCode(void* pvParameters) {
   Serial.print("ServerTask running on core ");
   Serial.println(xPortGetCoreID());
-
-  // loadConfig();
 
   if (MDNS.begin("esp32")) {
     Serial.println("MDNS responder started");
@@ -260,19 +293,20 @@ void ServerTaskCode(void* pvParameters) {
   Serial.print("Server address: ");
   Serial.println(WiFi.localIP());
 
-  // if (!server.authenticate("admin", serverPass.c_str())) {
-  //   return server.requestAuthentication();
-  // }
-
+  server.on("/login", HTTP_POST, handleLogin);
+  server.on("/updateconfig", HTTP_POST, handleUpdateConfig);
   server.on("/last", HTTP_GET, handleLast);
   server.on("/historical", HTTP_GET, handleHistorical);
   server.on("/toggledevice", HTTP_GET, handleDeviceManualToggle);
   server.on("/toggleschedule", HTTP_GET, handleScheduleManualToggle);
   server.on("/getconfig", HTTP_GET, handleGetConfig);
   server.on("/getdevicesstate", HTTP_GET, handleGetDevicesState);
-  server.on("/updateconfig", HTTP_POST, handleUpdateConfig);
 
   server.onNotFound(handleNotFound);
+
+  const char* headerKeys[] = {"Cookie"};
+  size_t headerKeysSize = sizeof(headerKeys) / sizeof(char*);
+  server.collectHeaders(headerKeys, headerKeysSize);
 
   server.begin();
   Serial.println("HTTP server started");
@@ -299,4 +333,47 @@ void checkDevices() {
   if (updateMillis) {
     scheduleUpdateLastMillis = millis();
   }
+}
+
+bool isAuthentified() {
+  if (server.hasHeader("Cookie")) {
+    String cookie = server.header("Cookie");
+
+    if (cookie.indexOf(String(serverAuthCookie) + "=1") != -1) {
+      Serial.println("Authentification Successful");
+      return true;
+    }
+  }
+  Serial.println("Authentification Failed");
+
+  JsonDocument failedAuthJson;
+  failedAuthJson["status"] = "error";
+  failedAuthJson["data"] = "Not authentified !";
+
+  String failedAuthString;
+  serializeJson(failedAuthJson, failedAuthString);
+  server.send(403, "application/json", failedAuthString);
+
+  return false;
+}
+
+JsonDocument deserializePost(String body) {
+  JsonDocument jsonResponse;
+  DeserializationError err = deserializeJson(jsonResponse, body);
+
+  switch (err.code()) {
+    case DeserializationError::Ok:
+      break;
+    case DeserializationError::InvalidInput:
+      server.send(500, "text/plain", "Invalid input");
+      break;
+    case DeserializationError::NoMemory:
+      server.send(500, "text/plain", "Not enough memory");
+      break;
+    default:
+      server.send(500, "text/plain", "Deserialization failed");
+      break;
+  }
+
+  return jsonResponse;
 }
