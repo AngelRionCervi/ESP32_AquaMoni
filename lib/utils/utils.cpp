@@ -1,4 +1,4 @@
-//#pragma once
+// #pragma once
 
 // void setLedOff() {
 //   digitalWrite(LED_GREEN_PIN, LOW);
@@ -76,7 +76,6 @@ String* splitString(String& v, char delimiter, int& length) {
   // If the delimiter is found than create the array
   // and split the String
   if (found) {
-
     // Create array
     String* values = new String[length];
 
@@ -84,7 +83,6 @@ String* splitString(String& v, char delimiter, int& length) {
     int i = 0;
     for (int itemIndex = 0; itemIndex < length; itemIndex++) {
       for (; i < v.length(); i++) {
-
         if (v[i] == delimiter) {
           i++;
           break;
@@ -102,4 +100,18 @@ String* splitString(String& v, char delimiter, int& length) {
   initVal[0] = v;
 
   return initVal;
+}
+
+String getRandomString(int len) {
+  String randomString = "";
+  char* eligibleChars =
+      "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890";
+  for (int i = 0; i < len; i++) {
+    uint8_t randomIndex = random(0, strlen(eligibleChars));
+    randomString += eligibleChars[randomIndex];
+  }
+  Serial.print("output: ");
+  Serial.println(randomString);
+
+  return randomString;
 }

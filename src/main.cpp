@@ -76,7 +76,6 @@ void loadConfig(JsonDocument& configJson) {
   wifiSSID = secretsJson["wifiSSID"].as<String>();
   wifiPass = secretsJson["wifiPass"].as<String>();
   serverPass = secretsJson["serverPass"].as<String>();
-  serverAuthCookie = secretsJson["serverAuthCookie"].as<String>();
 }
 
 void setupDevices(JsonDocument& configJson) {
@@ -101,6 +100,8 @@ void setup(void) {
   Serial.begin(115200);
   while (!Serial) {  // to remove for prod
   };
+
+  serverAuthCookie = getRandomString(16);
 
   setupSD();
   JsonDocument config = getConfig();
@@ -127,7 +128,7 @@ void setup(void) {
       NULL,           /* parameter of the task */
       1,              /* priority of the task */
       &SensorTask,    /* Task handle to keep track of created task */
-      1);             /* pin task to core 0 */
+      1);             /* pin task to core 1 */
 }
 
 void loop(void) {

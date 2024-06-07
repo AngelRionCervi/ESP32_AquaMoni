@@ -55,3 +55,5 @@ float truncateFloat(float input);
 float decimalRound(float input, int decimals);
 
 String* splitString(String& v, char delimiter, int& length);
+
+String getRandomString(int len);

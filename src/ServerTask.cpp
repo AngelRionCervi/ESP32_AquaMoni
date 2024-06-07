@@ -45,7 +45,7 @@ void handleHistorical() {
 
   String* days = splitString(argValue, ',', daysLength);
 
-  if (daysLength > 7) {
+  if (daysLength > 7777) {
     server.send(500, "text/plain", "Payload too big !");
 
     return;
@@ -79,6 +79,11 @@ void handleHistorical() {
   JsonDocument getHistoricalJson;
   getHistoricalJson["data"] = content;
   getHistoricalJson["status"] = "success";
+
+  bool hasOverflowed = getHistoricalJson.overflowed();
+
+  Serial.println("HAS OF");
+  Serial.println(hasOverflowed);
 
   String getHistoricalString;
   serializeJson(getHistoricalJson, getHistoricalString);
@@ -301,6 +306,24 @@ void handlePing() {
   return;
 }
 
+void handleRestart() {
+  if (!isAuthentified()) {
+    return;
+  }
+
+  JsonDocument restartJson;
+  restartJson["status"] = "success";
+  restartJson["data"] = "Restarting...";
+
+  String restartString;
+  serializeJson(restartJson, restartString);
+  server.send(200, "application/json", restartString);
+
+  ESP.restart();
+
+  return;
+}
+
 void ServerTaskCode(void* pvParameters) {
   Serial.print("ServerTask running on core ");
   Serial.println(xPortGetCoreID());
@@ -321,6 +344,7 @@ void ServerTaskCode(void* pvParameters) {
   server.on("/toggleschedule", HTTP_GET, handleScheduleManualToggle);
   server.on("/getconfig", HTTP_GET, handleGetConfig);
   server.on("/getdevices", HTTP_GET, handleGetDevices);
+  server.on("/restart", HTTP_GET, handleRestart);
 
   server.onNotFound(handleNotFound);
 

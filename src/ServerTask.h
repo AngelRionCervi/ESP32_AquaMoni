@@ -21,13 +21,17 @@ void handleDeviceManualToggle();
 
 void handleScheduleManualToggle();
 
-void handleGetDevicesState();
+void handleGetDevices();
 
 void handleGetConfig();
 
 void handleGetScheduleState();
 
 void handleLogin();
+
+void handlePing();
+
+void handleRestart();
 
 void ServerTaskCode(void* pvParameters);
 
