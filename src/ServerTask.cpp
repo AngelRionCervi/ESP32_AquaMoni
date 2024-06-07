@@ -180,20 +180,23 @@ void handleScheduleManualToggle() {
   return;
 }
 
-void handleGetDevicesState() {
+void handleGetDevices() {
   if (!isAuthentified()) {
     return;
   }
 
-  JsonDocument devicesStateJson;
-  JsonArray devicesStateArray = devicesStateJson.to<JsonArray>();
+  JsonDocument devicesJson;
+  JsonArray devicesStateArray = devicesJson.to<JsonArray>();
 
   for (auto& [name, device] : devices) {
-    JsonDocument deviceState;
-    bool state = device.getShellyInfo().state;
-    deviceState["name"] = name;
-    deviceState["state"] = state;
-    devicesStateArray.add(deviceState);
+    JsonDocument deviceJson;
+    ShellyPlug deviceShelly = device.getShellyInfo();
+    deviceJson["name"] = name;
+    deviceJson["state"] = deviceShelly.state;
+    deviceJson["isOnline"] = deviceShelly.hasInit;
+    deviceJson["schedule"] = device.schedule;
+    deviceJson["button"] = device.button;
+    devicesStateArray.add(deviceJson);
   }
 
   JsonDocument devicesStateResponseJson;
@@ -282,6 +285,22 @@ void handleLogin() {
   return;
 }
 
+void handlePing() {
+  if (!isAuthentified()) {
+    return;
+  }
+
+  JsonDocument pingJson;
+  pingJson["status"] = "success";
+  pingJson["data"] = "Online and authentified !";
+
+  String pingString;
+  serializeJson(pingJson, pingString);
+  server.send(200, "application/json", pingString);
+
+  return;
+}
+
 void ServerTaskCode(void* pvParameters) {
   Serial.print("ServerTask running on core ");
   Serial.println(xPortGetCoreID());
@@ -293,6 +312,7 @@ void ServerTaskCode(void* pvParameters) {
   Serial.print("Server address: ");
   Serial.println(WiFi.localIP());
 
+  server.on("/ping", HTTP_GET, handlePing);
   server.on("/login", HTTP_POST, handleLogin);
   server.on("/updateconfig", HTTP_POST, handleUpdateConfig);
   server.on("/last", HTTP_GET, handleLast);
@@ -300,7 +320,7 @@ void ServerTaskCode(void* pvParameters) {
   server.on("/toggledevice", HTTP_GET, handleDeviceManualToggle);
   server.on("/toggleschedule", HTTP_GET, handleScheduleManualToggle);
   server.on("/getconfig", HTTP_GET, handleGetConfig);
-  server.on("/getdevicesstate", HTTP_GET, handleGetDevicesState);
+  server.on("/getdevices", HTTP_GET, handleGetDevices);
 
   server.onNotFound(handleNotFound);
 
@@ -313,7 +333,7 @@ void ServerTaskCode(void* pvParameters) {
 
   for (;;) {
     server.handleClient();
-    // checkDevices();
+    checkDevices();
     delay(2);  // allow the cpu to switch to other tasks
   }
 }

@@ -6,6 +6,7 @@ Device::Device(const char* _address,
                const char* _name,
                int _ledPin,
                int _buttonPin,
+               unsigned int _button,
                JsonDocument _schedule,
                WiFiClient _wifiClient,
                int _port) {
@@ -13,6 +14,7 @@ Device::Device(const char* _address,
   ledPin = _ledPin;
   buttonPin = _buttonPin;
   schedule = _schedule;
+  button = _button;
 
   pinMode(_buttonPin, INPUT_PULLUP);
 
@@ -20,7 +22,7 @@ Device::Device(const char* _address,
   debouncer.mode(DELAYED, 10, LOW);
 
   shelly = ShellyPlug();
-  shelly.init(_address, _port, _wifiClient);
+  shelly.init(_address, _port, _wifiClient, name);
 }
 
 ShellyPlug Device::getShellyInfo() {
@@ -40,7 +42,7 @@ void Device::checkButton() {
   if (debouncer.falling()) {
     Serial.print("toggle: ");
     Serial.println(name);
-    shelly.toggleState();
+    //shelly.toggleState();
   }
 }
 

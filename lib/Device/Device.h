@@ -9,12 +9,19 @@ class Device {
   ADebouncer debouncer;
   int ledPin;
   int buttonPin;
+  unsigned int button;
   String name;
   JsonDocument schedule;
 
  public:
-  Device(const char *_address, const char *_name, int _ledPin, int _buttonPin,
-         JsonDocument schedule, WiFiClient _wifiClient, int _port = 80);
+  Device(const char* _address,
+         const char* _name,
+         int _ledPin,
+         int _buttonPin,
+         unsigned int _button,
+         JsonDocument schedule,
+         WiFiClient _wifiClient,
+         int _port = 80);
   ShellyPlug getShellyInfo();
   void setShellyState(bool _state);
   void toggleShellyState();

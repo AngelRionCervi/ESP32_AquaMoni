@@ -91,7 +91,7 @@ void setupDevices(JsonDocument& configJson) {
 
     JsonDocument scheduleCopy = schedule;
 
-    Device newDevice(ip, name, ledMap[button], buttonMap[button], scheduleCopy,
+    Device newDevice(ip, name, ledMap[button], buttonMap[button], button, scheduleCopy,
                      wifiClient);
     devices.emplace(name, newDevice);
   }

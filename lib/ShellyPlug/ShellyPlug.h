@@ -4,17 +4,18 @@
 #include <WiFi.h>
 
 class ShellyPlug {
-private:
-    WiFiClient wifiClient;
+ private:
+  WiFiClient wifiClient;
 
-public:
-    String address;
-    bool state;
-    int port = 80;
-    bool hasInit = false;
+ public:
+  String address;
+  String name;
+  bool state;
+  int port = 80;
+  bool hasInit = false;
 
-public:
-    void setState(bool _state);
-    void toggleState();
-    void init(const char* _address, int _port, WiFiClient _wifiClient);
+ public:
+  void setState(bool _state);
+  void toggleState();
+  void init(const char* _address, int _port, WiFiClient _wifiClient, String _name);
 };

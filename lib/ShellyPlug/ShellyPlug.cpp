@@ -17,20 +17,22 @@ void ShellyPlug::toggleState() {
   setState(!state);
 }
 
-void ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient) {
+void ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, String _name) {
   address = _address;
   port = _port;
   wifiClient = _wifiClient;
+  name = _name;
 
   HttpClient httpClient = HttpClient(wifiClient, address, port);
-  String request = String("/relay/0");
+  String request = "/relay/0";
 
   httpClient.get(request);
   int statusCode = httpClient.responseStatusCode();
   String response = httpClient.responseBody();
 
   if (statusCode != 200) {
-    Serial.println("[ShellyPlug] (init) could not get response");
+    String errorMessage = String("[ShellyPlug] (init) could not get response from: ") + name;
+    Serial.println(errorMessage);
     Serial.print("Status code: ");
     Serial.println(statusCode);
 
