@@ -45,13 +45,18 @@ void handleHistorical() {
 
   String* days = splitString(argValue, ',', daysLength);
 
-  if (daysLength > 7777) {
+  if (daysLength > 62) {
     server.send(500, "text/plain", "Payload too big !");
 
     return;
   }
 
-  String content = "";
+  server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  server.sendHeader("Expires", "-1");
+  server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+
+  server.send(200, "text/plain", "");
+
   for (int i = 0; i < daysLength; i++) {
     String fileName = "/historical/";
     fileName += days[i];
@@ -68,27 +73,19 @@ void handleHistorical() {
       Serial.println(fileName);
     }
 
+    String content = "";
+
     while (dayFile.available()) {
       content += dayFile.readString();
     }
+
+    server.sendContent(content);
 
     dayFile.close();
     Serial.println(days[i]);
   }
 
-  JsonDocument getHistoricalJson;
-  getHistoricalJson["data"] = content;
-  getHistoricalJson["status"] = "success";
-
-  bool hasOverflowed = getHistoricalJson.overflowed();
-
-  Serial.println("HAS OF");
-  Serial.println(hasOverflowed);
-
-  String getHistoricalString;
-  serializeJson(getHistoricalJson, getHistoricalString);
-
-  server.send(200, "application/json", getHistoricalString);
+  server.client().stop();
 
   delete[] days;
 
