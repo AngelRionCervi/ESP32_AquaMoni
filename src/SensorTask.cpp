@@ -1,11 +1,11 @@
 #include "SensorTask.h"
 
-PhMesure phMesure(PH_SENSOR_PIN, PH_NEUTRAL_VOLTAGE, PH_ACID_VOLTAGE);
-TempMesure tempMesure(TEMP_SENSOR_PIN);
-
 void SensorTaskCode(void* pvParameters) {
   Serial.print("SensorTask running on core ");
   Serial.println(xPortGetCoreID());
+
+  PhMesure phMesure(PH_SENSOR_PIN, PH_NEUTRAL_VOLTAGE, PH_ACID_VOLTAGE);
+  TempMesure tempMesure(TEMP_SENSOR_PIN);
 
   for (;;) {
     float phValue = phMesure.mesurePh();
@@ -18,9 +18,14 @@ void SensorTaskCode(void* pvParameters) {
     float ph = decimalRound(phValue, 2);
     float temp = decimalRound(tempValue, 2);
 
-    writeToSd(ph, temp);
+    Serial.println("temp: " + String(temp));
+    Serial.println("ph: " + String(ph));
 
-    delay(10*60*1000);
+    // writeToSd(ph, temp);
+
+    // delay(10*60*1000);
+
+    delay(5000);
   }
 }
 

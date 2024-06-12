@@ -7,7 +7,7 @@ public:
   DallasTemperature ds;
   int tempSensorPin;
 public:
-  TempMesure(int tempSensorPin);
+  TempMesure(int _tempSensorPin);
   void begin();
   float mesureWaterTemp();
 };

@@ -90,18 +90,30 @@ void setupDevices(JsonDocument& configJson) {
 
     JsonDocument scheduleCopy = schedule;
 
-    Device newDevice(ip, name, ledMap[button], buttonMap[button], button, scheduleCopy,
-                     wifiClient);
+    Device newDevice(ip, name, ledMap[button], buttonMap[button], button,
+                     scheduleCopy, wifiClient);
     devices.emplace(name, newDevice);
   }
 }
 
 void setup(void) {
   Serial.begin(115200);
+  //pinMode(39, INPUT);
+  pinMode(SCHEDULE_LED_GREEN_PIN, OUTPUT);
+  pinMode(SCHEDULE_LED_RED_PIN, OUTPUT);
+  // pinMode(ACTIVITY_LED_GREEN_PIN, OUTPUT);
+  // pinMode(ACTIVITY_LED_RED_PIN, OUTPUT);
+
+  digitalWrite(SCHEDULE_LED_GREEN_PIN, LOW);
+  digitalWrite(SCHEDULE_LED_RED_PIN, HIGH);
+
+  // digitalWrite(ACTIVITY_LED_GREEN_PIN, HIGH);
+  // digitalWrite(ACTIVITY_LED_RED_PIN, LOW);
+
   while (!Serial) {  // to remove for prod
   };
 
-  serverAuthCookie = "hola"; //getRandomString(16);
+  serverAuthCookie = "hola";  // getRandomString(16);
 
   setupSD();
   JsonDocument config = getConfig();
