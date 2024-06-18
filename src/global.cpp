@@ -15,7 +15,7 @@ int scheduleUpdateLastMillis = 0;
 String wifiSSID;
 String wifiPass;
 String serverPass;
-String serverAuthCookie;
+String sessionId;
 
 std::map<int, int> buttonMap = {
     { 0, BUTTON_0_PIN },

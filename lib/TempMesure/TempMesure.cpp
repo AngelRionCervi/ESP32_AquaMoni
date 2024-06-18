@@ -3,7 +3,6 @@
 
 TempMesure::TempMesure(int _tempSensorPin) {
   tempSensorPin = _tempSensorPin;
-  Serial.println("TEMP SENSOR PIN: " + String(tempSensorPin));
   oneWire = OneWire(tempSensorPin);
   ds = DallasTemperature(&oneWire);
 }

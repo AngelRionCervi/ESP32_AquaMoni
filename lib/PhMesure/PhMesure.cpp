@@ -38,8 +38,6 @@ float PhMesure::mesurePh()
 
     debug_phVoltage = avgVoltage;
 
-    Serial.println(" PH VOLTAGE: " + String(debug_phVoltage));
-
     float slope = (7.0 - 4.0) / ((phNeutralVoltage - 1500) / 3.0 - (phAcidVoltage - 1500) / 3.0);
     float intercept = 7.0 - slope * (phNeutralVoltage - 1500) / 3.0;
 

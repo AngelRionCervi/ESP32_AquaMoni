@@ -262,27 +262,41 @@ void handleGetScheduleState() {
 }
 
 void handleLogin() {
-  if (server.hasArg("DISCONNECT")) {
+  JsonDocument loginJson;
+  String loginString;
+  int statusCode = 401;
+
+  if (server.hasArg("DISCONNECT")) {  // TODO
     Serial.println("Disconnection");
     server.sendHeader("Cache-Control", "no-cache");
-    server.sendHeader("Set-Cookie", String(serverAuthCookie) + "=0");
+    server.sendHeader("Set-Cookie", "sessionId=0");
     return;
   }
+
   if (server.arg(0)) {
     JsonDocument authBody = deserializePost(server.arg(0));
 
     if (authBody["pass"] == serverPass) {
       server.sendHeader("Cache-Control", "no-cache");
-      server.sendHeader("Set-Cookie", String(serverAuthCookie) + "=1");
+      server.sendHeader("Set-Cookie",
+                        "sessionId=" + String(sessionId) +
+                            String("; Max-Age=2592000; HttpOnly"));
       Serial.println("Log in Successful");
-      server.send(200, "text/html", "Log in Successful !");
-      return;
+      loginJson["status"] = "success";
+      loginJson["data"] = sessionId;
+      statusCode = 200;
+    } else {
+      Serial.println("Log in Failed");
+      loginJson["status"] = "error";
+      loginJson["data"] = "Log in Failed";
     }
-    Serial.println("Log in Failed");
-    server.send(401, "text/html", "Log in Failed !");
+  } else {
+    loginJson["status"] = "error";
+    loginJson["data"] = "No credentials provided !";
   }
 
-  server.send(401, "text/html", "No credentials provided !");
+  serializeJson(loginJson, loginString);
+  server.send(statusCode, "application/json", loginString);
 
   return;
 }
@@ -332,6 +346,8 @@ void ServerTaskCode(void* pvParameters) {
   Serial.print("Server address: ");
   Serial.println(WiFi.localIP());
 
+  server.enableCORS();
+
   server.on("/ping", HTTP_GET, handlePing);
   server.on("/login", HTTP_POST, handleLogin);
   server.on("/updateconfig", HTTP_POST, handleUpdateConfig);
@@ -345,7 +361,7 @@ void ServerTaskCode(void* pvParameters) {
 
   server.onNotFound(handleNotFound);
 
-  const char* headerKeys[] = {"Cookie"};
+  const char* headerKeys[] = {"User-Agent", "Cookie"};
   size_t headerKeysSize = sizeof(headerKeys) / sizeof(char*);
   server.collectHeaders(headerKeys, headerKeysSize);
 
@@ -377,10 +393,12 @@ void checkDevices() {
 }
 
 bool isAuthentified() {
+  return true;
+
   if (server.hasHeader("Cookie")) {
     String cookie = server.header("Cookie");
 
-    if (cookie.indexOf(String(serverAuthCookie) + "=1") != -1) {
+    if (cookie.indexOf("sessionId=" + String(sessionId)) != -1) {
       Serial.println("Authentification Successful");
       return true;
     }

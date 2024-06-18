@@ -113,7 +113,7 @@ void setup(void) {
   while (!Serial) {  // to remove for prod
   };
 
-  serverAuthCookie = "hola";  // getRandomString(16);
+  sessionId = "hola";  // getRandomString(16);
 
   setupSD();
   JsonDocument config = getConfig();
