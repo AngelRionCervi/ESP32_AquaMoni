@@ -102,15 +102,28 @@ void handleUpdateConfig() {
   File fileConfig = SD.open(FILE_CONFIG, "w");
 
   if (!fileConfig) {
-    server.send(500, "text/plain",
-                "Could not open config.jso [handleUpdateConfig]");
+    JsonDocument noConfigJson;
+    noConfigJson["message"] = "Could not open config.jso [handleUpdateConfig]";
+    noConfigJson["status"] = "error";
+
+    String noConfigString;
+    serializeJson(noConfigJson, noConfigString);
+
+    server.send(500, "application/json", noConfigString);
     return;
   }
 
   serializeJson(newConfigJson, fileConfig);
   fileConfig.close();
 
-  server.send(200, "text/plain", "Config updated, resetting...");
+  JsonDocument updatedJson;
+  updatedJson["message"] = "Config updated, resetting...";
+  updatedJson["status"] = "success";
+
+  String updateString;
+  serializeJson(updatedJson, updateString);
+
+  server.send(200, "application/json", updateString);
   Serial.println("Config updated");
   ESP.restart();
 }
