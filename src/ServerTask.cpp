@@ -125,7 +125,8 @@ void handleUpdateConfig() {
 
   server.send(200, "application/json", updateString);
   Serial.println("Config updated");
-  ESP.restart();
+
+  return;
 }
 
 void handleNotFound() {
