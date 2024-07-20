@@ -227,6 +227,39 @@ void handleGetDevices() {
   return;
 }
 
+void handleGetHardwareToggleUpdate() {
+  if (!isAuthentified()) {
+    return;
+  }
+
+  JsonDocument update;
+  JsonDocument devicesJson;
+  JsonArray devicesStateArray = devicesJson.to<JsonArray>();
+
+  for (auto& [name, device] : devices) {
+    JsonDocument deviceJson;
+    ShellyPlug deviceShelly = device.getShellyInfo();
+    deviceJson["name"] = name;
+    deviceJson["state"] = deviceShelly.state;
+    deviceJson["isOnline"] = deviceShelly.hasInit;
+    devicesStateArray.add(deviceJson);
+  }
+
+  update["devices"] = devicesStateArray;
+  update["isScheduleOn"] = !areSchedulesDisabled;
+
+  JsonDocument updateResponseJson;
+  updateResponseJson["data"] = update;
+  updateResponseJson["status"] = "success";
+
+  String updateResponseString;
+  serializeJson(updateResponseJson, updateResponseString);
+
+  server.send(200, "application/json", updateResponseString);
+
+  return;
+}
+
 void handleGetConfig() {
   if (!isAuthentified()) {
     return;
@@ -369,6 +402,8 @@ void ServerTaskCode(void* pvParameters) {
   server.on("/historical", HTTP_GET, handleHistorical);
   server.on("/toggledevice", HTTP_GET, handleDeviceManualToggle);
   server.on("/toggleschedule", HTTP_GET, handleScheduleManualToggle);
+  server.on("/getschedulestate", HTTP_GET, handleGetScheduleState);
+  server.on("/gethardwaretoggleupdate", HTTP_GET, handleGetHardwareToggleUpdate);
   server.on("/getconfig", HTTP_GET, handleGetConfig);
   server.on("/getdevices", HTTP_GET, handleGetDevices);
   server.on("/restart", HTTP_GET, handleRestart);
