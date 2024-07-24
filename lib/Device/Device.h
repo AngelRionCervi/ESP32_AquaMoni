@@ -12,6 +12,7 @@ class Device {
   unsigned int button;
   String name;
   JsonDocument schedule;
+  bool shellyState;
 
  public:
   Device(const char* _address,

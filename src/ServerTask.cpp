@@ -403,7 +403,8 @@ void ServerTaskCode(void* pvParameters) {
   server.on("/toggledevice", HTTP_GET, handleDeviceManualToggle);
   server.on("/toggleschedule", HTTP_GET, handleScheduleManualToggle);
   server.on("/getschedulestate", HTTP_GET, handleGetScheduleState);
-  server.on("/gethardwaretoggleupdate", HTTP_GET, handleGetHardwareToggleUpdate);
+  server.on("/gethardwaretoggleupdate", HTTP_GET,
+            handleGetHardwareToggleUpdate);
   server.on("/getconfig", HTTP_GET, handleGetConfig);
   server.on("/getdevices", HTTP_GET, handleGetDevices);
   server.on("/restart", HTTP_GET, handleRestart);
@@ -420,6 +421,7 @@ void ServerTaskCode(void* pvParameters) {
   for (;;) {
     server.handleClient();
     checkDevices();
+    checkScheduleButton();
     delay(2);  // allow the cpu to switch to other tasks
   }
 }
@@ -428,9 +430,9 @@ void checkDevices() {
   int updateMillis = false;
 
   for (auto& [name, device] : devices) {
-    device.checkButton();
-    if (!areSchedulesDisabled &&
-        millis() - scheduleUpdateLastMillis > scheduleUpdatePeriode) {
+    if (areSchedulesDisabled) {
+      device.checkButton();
+    } else if (millis() - scheduleUpdateLastMillis > scheduleUpdatePeriode) {
       device.checkSchedule();
       updateMillis = true;
     }
@@ -438,6 +440,13 @@ void checkDevices() {
 
   if (updateMillis) {
     scheduleUpdateLastMillis = millis();
+  }
+}
+
+void checkScheduleButton() {
+  bool newState = scheduleButton.checkButton();
+  if (newState != areSchedulesDisabled) {
+    areSchedulesDisabled = newState;
   }
 }
 

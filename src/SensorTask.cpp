@@ -18,8 +18,8 @@ void SensorTaskCode(void* pvParameters) {
     float ph = decimalRound(phValue, 2);
     float temp = decimalRound(tempValue, 2);
 
-    Serial.println("temp: " + String(temp));
-    Serial.println("ph: " + String(ph));
+    // Serial.println("temp: " + String(temp));
+    // Serial.println("ph: " + String(ph));
 
     // writeToSd(ph, temp);
 

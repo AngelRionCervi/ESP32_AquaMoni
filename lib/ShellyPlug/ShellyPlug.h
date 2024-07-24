@@ -17,5 +17,5 @@ class ShellyPlug {
  public:
   void setState(bool _state);
   void toggleState();
-  void init(const char* _address, int _port, WiFiClient _wifiClient, String _name);
+  bool init(const char* _address, int _port, WiFiClient _wifiClient, String _name);
 };

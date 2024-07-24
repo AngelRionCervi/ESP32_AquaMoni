@@ -1,5 +1,4 @@
 #include "Device.h"
-
 #include <ESPDateTime.h>
 
 Device::Device(const char* _address,
@@ -17,12 +16,15 @@ Device::Device(const char* _address,
   button = _button;
 
   pinMode(_buttonPin, INPUT_PULLUP);
+  pinMode(_ledPin, OUTPUT);
 
   debouncer = ADebouncer();
   debouncer.mode(DELAYED, 10, LOW);
 
   shelly = ShellyPlug();
-  shelly.init(_address, _port, _wifiClient, name);
+  bool initState = shelly.init(_address, _port, _wifiClient, name);
+  shellyState = initState;
+  digitalWrite(ledPin, shellyState);
 }
 
 ShellyPlug Device::getShellyInfo() {
@@ -42,7 +44,14 @@ void Device::checkButton() {
   if (debouncer.falling()) {
     Serial.print("toggle: ");
     Serial.println(name);
-    //shelly.toggleState();
+    shellyState = !shellyState;
+    shelly.setState(shellyState);
+  }
+
+  if (shellyState) {
+    digitalWrite(ledPin, HIGH);
+  } else {
+    digitalWrite(ledPin, LOW);
   }
 }
 

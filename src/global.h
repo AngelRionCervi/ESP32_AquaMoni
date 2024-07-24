@@ -1,9 +1,11 @@
+#pragma once
 #include <WebServer.h>
 
 #include <map>
 #include <unordered_map>
 
 #include "Device.h"
+#include "ScheduleButton.h"
 
 #ifndef MY_GLOBALS_H
 #define MY_GLOBALS_H
@@ -24,5 +26,6 @@ extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
 extern String sessionId;
+extern ScheduleButton scheduleButton;
 
 #endif

@@ -19,17 +19,17 @@
 #define RELAY_LIGHT_NAME "light"
 #define RELAY_LIGHT_IP "192.168.1.14"
 
-#define BUTTON_0_PIN 14
-#define BUTTON_1_PIN 12
+#define BUTTON_0_PIN 32
+#define BUTTON_1_PIN 27
 #define BUTTON_2_PIN 13
-#define BUTTON_3_PIN 27
-#define BUTTON_4_PIN 32
+#define BUTTON_3_PIN 12
+#define BUTTON_4_PIN 14
 
-#define LED_0_PIN 2
-#define LED_1_PIN 22
+#define LED_0_PIN 21
+#define LED_1_PIN 3
 #define LED_2_PIN 1
-#define LED_3_PIN 3
-#define LED_4_PIN 21
+#define LED_3_PIN 22
+#define LED_4_PIN 2
 
 #define BUTTON_SCHEDULE_PIN 33
 #define SCHEDULE_LED_GREEN_PIN 25

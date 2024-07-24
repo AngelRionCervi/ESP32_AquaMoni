@@ -17,7 +17,7 @@ void ShellyPlug::toggleState() {
   setState(!state);
 }
 
-void ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, String _name) {
+bool ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, String _name) {
   address = _address;
   port = _port;
   wifiClient = _wifiClient;
@@ -36,7 +36,7 @@ void ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, S
     Serial.print("Status code: ");
     Serial.println(statusCode);
 
-    return;
+    return false;
   }
 
   JsonDocument doc;
@@ -46,4 +46,6 @@ void ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, S
 
   state = isOn;
   hasInit = true;
+
+  return state;
 }

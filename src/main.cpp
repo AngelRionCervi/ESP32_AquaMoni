@@ -98,16 +98,16 @@ void setupDevices(JsonDocument& configJson) {
 
 void setup(void) {
   Serial.begin(115200);
-  pinMode(SCHEDULE_LED_GREEN_PIN, OUTPUT);
-  pinMode(SCHEDULE_LED_RED_PIN, OUTPUT);
-  pinMode(ACTIVITY_LED_GREEN_PIN, OUTPUT);
-  pinMode(ACTIVITY_LED_RED_PIN, OUTPUT);
+  // pinMode(SCHEDULE_LED_GREEN_PIN, OUTPUT);
+  // pinMode(SCHEDULE_LED_RED_PIN, OUTPUT);
+  // pinMode(ACTIVITY_LED_GREEN_PIN, OUTPUT);
+  // pinMode(ACTIVITY_LED_RED_PIN, OUTPUT);
 
-  digitalWrite(SCHEDULE_LED_GREEN_PIN, LOW);
-  digitalWrite(SCHEDULE_LED_RED_PIN, HIGH);
+  // digitalWrite(SCHEDULE_LED_GREEN_PIN, LOW);
+  // digitalWrite(SCHEDULE_LED_RED_PIN, HIGH);
 
-  digitalWrite(ACTIVITY_LED_GREEN_PIN, HIGH);
-  digitalWrite(ACTIVITY_LED_RED_PIN, LOW);
+  // digitalWrite(ACTIVITY_LED_GREEN_PIN, HIGH);
+  // digitalWrite(ACTIVITY_LED_RED_PIN, LOW);
 
   while (!Serial) {  // to remove for prod
   };

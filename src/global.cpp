@@ -17,6 +17,8 @@ String wifiPass;
 String serverPass;
 String sessionId;
 
+ScheduleButton scheduleButton(BUTTON_SCHEDULE_PIN, SCHEDULE_LED_GREEN_PIN, SCHEDULE_LED_RED_PIN);
+
 std::map<int, int> buttonMap = {
     { 0, BUTTON_0_PIN },
     { 1, BUTTON_1_PIN },

@@ -39,4 +39,6 @@ void checkDevices();
 
 bool isAuthentified();
 
+void checkScheduleButton();
+
 JsonDocument deserializePost(String body);
