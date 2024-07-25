@@ -18,6 +18,7 @@ String serverPass;
 String sessionId;
 
 ScheduleButton scheduleButton(BUTTON_SCHEDULE_PIN, SCHEDULE_LED_GREEN_PIN, SCHEDULE_LED_RED_PIN);
+ActivityLed activityLed(ACTIVITY_LED_GREEN_PIN, ACTIVITY_LED_RED_PIN);
 
 std::map<int, int> buttonMap = {
     { 0, BUTTON_0_PIN },

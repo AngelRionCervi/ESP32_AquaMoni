@@ -8,6 +8,7 @@ void handleLast() {
   File fileLast = SD.open(FILE_LAST, "r");
   if (!fileLast) {
     Serial.println("Could not open last.jso for sending");
+    activityLed.setState("errorBlink");
   }
 
   String content;
@@ -163,7 +164,7 @@ void handleDeviceManualToggle() {
 
   device.toggleShellyState();
 
-  bool newState = device.getShellyInfo().state;
+  bool newState = device.shellyState;
 
   JsonDocument donePayloadJson;
   donePayloadJson["status"] = "success";
@@ -187,6 +188,8 @@ void handleScheduleManualToggle() {
   JsonDocument donePayloadJson;
   donePayloadJson["status"] = "success";
   donePayloadJson["newState"] = areSchedulesDisabled;
+
+  scheduleButton.update(areSchedulesDisabled);
 
   String donePayloadString;
   serializeJson(donePayloadJson, donePayloadString);
@@ -422,6 +425,7 @@ void ServerTaskCode(void* pvParameters) {
     server.handleClient();
     checkDevices();
     checkScheduleButton();
+    activityLed.update();
     delay(2);  // allow the cpu to switch to other tasks
   }
 }

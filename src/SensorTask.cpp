@@ -13,13 +13,17 @@ void SensorTaskCode(void* pvParameters) {
 
     if (phValue > 15 || tempValue < 0) {
       sensorError = true;
+      activityLed.setState("errorBlink");
+    } else {
+      sensorError = false;
+      activityLed.setState("ok");
     }
 
     float ph = decimalRound(phValue, 2);
     float temp = decimalRound(tempValue, 2);
 
-    // Serial.println("temp: " + String(temp));
-    // Serial.println("ph: " + String(ph));
+    Serial.println("temp: " + String(temp));
+    Serial.println("ph: " + String(ph));
 
     // writeToSd(ph, temp);
 
@@ -48,6 +52,7 @@ void writeToLast(JsonDocument* currentData) {
     Serial.println("updated last.jso");
   } else {
     Serial.println("error writing last.jso");
+    activityLed.setState("errorBlink");
   }
 }
 
@@ -77,5 +82,6 @@ void writeToHistorical(JsonDocument* currentData) {
     Serial.println("updated historical.jso");
   } else {
     Serial.println("error writing historical.jso");
+    activityLed.setState("errorBlink");
   }
 }

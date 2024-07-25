@@ -26,7 +26,8 @@ void setupWifi() {
   WiFi.begin(wifiSSID, wifiPass);
   Serial.print("WiFi Connecting...");
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    activityLed.update();
+    delay(50);
   }
   Serial.println();
 }
@@ -35,11 +36,15 @@ void setupDateTime() {
   DateTime.setServer(NTP_SERVER_ADDRESS);
   DateTime.setTimeZone("UTC-2");
   DateTime.begin();
+  activityLed.update();
   if (!DateTime.isTimeValid()) {
     Serial.println("Failed to get time from server.");
-    while (1)
-      ;
+    activityLed.setState("error");
+    activityLed.update();
+    delay(5000);
+    setupDateTime();
   } else {
+    activityLed.update();
     Serial.printf("Date Now is %s\n", DateTime.toISOString().c_str());
     Serial.printf("Timestamp is %ld\n", DateTime.now());
   }
@@ -48,16 +53,21 @@ void setupDateTime() {
 void setupSD() {
   if (!SD.begin()) {
     Serial.println("SD card initialization failed!");
-    while (1)
-      ;
+    activityLed.setState("error");
+    activityLed.update();
+    delay(5000);
+    setupSD();
   }
 }
 
 JsonDocument getConfig() {
   File fileConfig = SD.open(FILE_CONFIG, "r");
+  activityLed.update();
 
   if (!fileConfig) {
     Serial.println("Could not open config.jso [loadConfig]");
+    activityLed.setState("error");
+    activityLed.update();
   }
 
   String configString;
@@ -72,6 +82,7 @@ JsonDocument getConfig() {
 }
 
 void loadConfig(JsonDocument& configJson) {
+  activityLed.update();
   JsonObject secretsJson = configJson["secrets"];
   wifiSSID = secretsJson["wifiSSID"].as<String>();
   wifiPass = secretsJson["wifiPass"].as<String>();
@@ -93,23 +104,18 @@ void setupDevices(JsonDocument& configJson) {
     Device newDevice(ip, name, ledMap[button], buttonMap[button], button,
                      scheduleCopy, wifiClient);
     devices.emplace(name, newDevice);
+    activityLed.update();
   }
 }
 
 void setup(void) {
   Serial.begin(115200);
-  // pinMode(SCHEDULE_LED_GREEN_PIN, OUTPUT);
-  // pinMode(SCHEDULE_LED_RED_PIN, OUTPUT);
-  // pinMode(ACTIVITY_LED_GREEN_PIN, OUTPUT);
-  // pinMode(ACTIVITY_LED_RED_PIN, OUTPUT);
-
-  // digitalWrite(SCHEDULE_LED_GREEN_PIN, LOW);
-  // digitalWrite(SCHEDULE_LED_RED_PIN, HIGH);
-
-  // digitalWrite(ACTIVITY_LED_GREEN_PIN, HIGH);
-  // digitalWrite(ACTIVITY_LED_RED_PIN, LOW);
+  activityLed.setState("okBlink");
+  activityLed.update();
 
   while (!Serial) {  // to remove for prod
+    activityLed.update();
+    delay(50);
   };
 
   sessionId = "hola";  // getRandomString(16);
@@ -119,10 +125,15 @@ void setup(void) {
   loadConfig(config);
   setupWifi();
   setupDateTime();
+
+  Serial.println("Setting up devices...");
   setupDevices(config);
 
-  Serial.println("Starting tasks...");
+  scheduleButton.update(false);
 
+  activityLed.setState("ok");
+
+  Serial.println("Starting tasks...");
   xTaskCreatePinnedToCore(
       ServerTaskCode, /* Task function. */
       "ServerTask",   /* name of task. */

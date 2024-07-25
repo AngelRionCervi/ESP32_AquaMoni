@@ -15,13 +15,8 @@ ScheduleButton::ScheduleButton(int _buttonPin,
   pinMode(ledRedPin, OUTPUT);
 }
 
-bool ScheduleButton::checkButton() {
-  debouncer.debounce(digitalRead(buttonPin));
-  if (debouncer.falling()) {
-    state = !state;
-    Serial.println("toggle schedules: " + String(state));
-  }
-
+void ScheduleButton::update(bool _state) {
+  state = _state;
   if (state) {
     digitalWrite(ledRedPin, HIGH);
     digitalWrite(ledGreenPin, LOW);
@@ -29,6 +24,14 @@ bool ScheduleButton::checkButton() {
     digitalWrite(ledRedPin, LOW);
     digitalWrite(ledGreenPin, HIGH);
   }
+}
 
+bool ScheduleButton::checkButton() {
+  debouncer.debounce(digitalRead(buttonPin));
+  if (debouncer.falling()) {
+    Serial.println("toggle schedules: " + String(state));
+    this->update(!state);
+  }
+  
   return state;
 }

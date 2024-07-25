@@ -11,4 +11,5 @@ class ScheduleButton {
  public:
   ScheduleButton(int _buttonPin, int _ledGreenPin, int _ledRedPin);
   bool checkButton();
+  void update(bool _state);
 };

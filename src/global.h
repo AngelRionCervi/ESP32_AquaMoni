@@ -6,6 +6,7 @@
 
 #include "Device.h"
 #include "ScheduleButton.h"
+#include "ActivityLed.h"
 
 #ifndef MY_GLOBALS_H
 #define MY_GLOBALS_H
@@ -27,5 +28,6 @@ extern String wifiPass;
 extern String serverPass;
 extern String sessionId;
 extern ScheduleButton scheduleButton;
+extern ActivityLed activityLed;
 
 #endif
