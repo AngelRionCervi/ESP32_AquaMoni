@@ -32,11 +32,15 @@ ShellyPlug Device::getShellyInfo() {
 }
 
 void Device::setShellyState(bool state) {
+  shellyState = state;
   shelly.setState(state);
+  this->updateLed();
 }
 
 void Device::toggleShellyState() {
-  shelly.toggleState();
+  shellyState = !shellyState;
+  shelly.setState(shellyState);
+  this->updateLed();
 }
 
 void Device::checkButton() {
@@ -46,8 +50,11 @@ void Device::checkButton() {
     Serial.println(name);
     shellyState = !shellyState;
     shelly.setState(shellyState);
+    this->updateLed();
   }
+}
 
+void Device::updateLed() {
   if (shellyState) {
     digitalWrite(ledPin, HIGH);
   } else {

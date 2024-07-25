@@ -28,4 +28,5 @@ class Device {
   void toggleShellyState();
   void checkButton();
   void checkSchedule();
+  void updateLed();
 };
