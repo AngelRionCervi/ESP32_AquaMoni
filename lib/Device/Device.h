@@ -11,12 +11,14 @@ class Device {
   int buttonPin;
   unsigned int button;
   String name;
+  String id;
   JsonDocument schedule;
   bool shellyState;
 
  public:
   Device(const char* _address,
          const char* _name,
+         const char* _id,
          int _ledPin,
          int _buttonPin,
          unsigned int _button,

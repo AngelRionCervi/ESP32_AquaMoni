@@ -148,7 +148,7 @@ void handleDeviceManualToggle() {
     return;
   }
 
-  if (server.argName(0) != "name") {
+  if (server.argName(0) != "id") {
     handleNotFound();
     return;
   }
@@ -159,8 +159,8 @@ void handleDeviceManualToggle() {
     donePayloadJson["message"] = "Schedules not disabled !";
   }
 
-  std::string deviceName = server.arg(0).c_str();
-  Device& device = devices.at(deviceName);
+  std::string deviceId = server.arg(0).c_str();
+  Device& device = devices.at(deviceId);
 
   device.toggleShellyState();
 
@@ -207,10 +207,11 @@ void handleGetDevices() {
   JsonDocument devicesJson;
   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
 
-  for (auto& [name, device] : devices) {
+  for (auto& [id, device] : devices) {
     JsonDocument deviceJson;
     ShellyPlug deviceShelly = device.getShellyInfo();
-    deviceJson["name"] = name;
+    deviceJson["name"] = device.name;
+    deviceJson["id"] = id;
     deviceJson["state"] = deviceShelly.state;
     deviceJson["isOnline"] = deviceShelly.hasInit;
     deviceJson["schedule"] = device.schedule;
@@ -239,10 +240,11 @@ void handleGetHardwareToggleUpdate() {
   JsonDocument devicesJson;
   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
 
-  for (auto& [name, device] : devices) {
+  for (auto& [id, device] : devices) {
     JsonDocument deviceJson;
     ShellyPlug deviceShelly = device.getShellyInfo();
-    deviceJson["name"] = name;
+    deviceJson["name"] = device.name;
+    deviceJson["id"] = id;
     deviceJson["state"] = deviceShelly.state;
     deviceJson["isOnline"] = deviceShelly.hasInit;
     devicesStateArray.add(deviceJson);
@@ -433,7 +435,7 @@ void ServerTaskCode(void* pvParameters) {
 void checkDevices() {
   int updateMillis = false;
 
-  for (auto& [name, device] : devices) {
+  for (auto& [_, device] : devices) {
     if (areSchedulesDisabled) {
       device.checkButton();
     } else if (millis() - scheduleUpdateLastMillis > scheduleUpdatePeriode) {

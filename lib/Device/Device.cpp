@@ -3,6 +3,7 @@
 
 Device::Device(const char* _address,
                const char* _name,
+               const char* _id,
                int _ledPin,
                int _buttonPin,
                unsigned int _button,
@@ -10,6 +11,7 @@ Device::Device(const char* _address,
                WiFiClient _wifiClient,
                int _port) {
   name = _name;
+  id = _id;
   ledPin = _ledPin;
   buttonPin = _buttonPin;
   schedule = _schedule;

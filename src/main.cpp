@@ -96,14 +96,15 @@ void setupDevices(JsonDocument& configJson) {
     JsonObject deviceObj = deviceArray[i];
     const char* name = deviceObj["name"].as<const char*>();
     const char* ip = deviceObj["ip"].as<const char*>();
+    const char* id = deviceObj["id"].as<const char*>();
     unsigned int button = deviceObj["button"].as<unsigned int>();
     JsonVariant schedule = deviceObj["schedule"].as<JsonVariant>();
 
     JsonDocument scheduleCopy = schedule;
 
-    Device newDevice(ip, name, ledMap[button], buttonMap[button], button,
+    Device newDevice(ip, name, id, ledMap[button], buttonMap[button], button,
                      scheduleCopy, wifiClient);
-    devices.emplace(name, newDevice);
+    devices.emplace(id, newDevice);
     activityLed.update();
   }
 }
