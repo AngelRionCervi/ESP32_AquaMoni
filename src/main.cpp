@@ -92,6 +92,11 @@ void loadConfig(JsonDocument& configJson) {
 void setupDevices(JsonDocument& configJson) {
   JsonArray deviceArray = configJson["devices"];
 
+  for (auto const& [_, value] : ledMap) {
+    pinMode(value, OUTPUT);
+    digitalWrite(value, LOW);
+  }
+
   for (int i = 0; i < deviceArray.size(); i++) {
     JsonObject deviceObj = deviceArray[i];
     const char* name = deviceObj["name"].as<const char*>();
