@@ -72,18 +72,19 @@ void handleHistorical() {
       Serial.println("");
       Serial.print("Could not open: ");
       Serial.println(fileName);
+      dayFile.close();
+    } else {
+      String content = "";
+
+      while (dayFile.available()) {
+        content += dayFile.readString();
+      }
+
+      server.sendContent(content);
+
+      dayFile.close();
+      //Serial.println(days[i]);
     }
-
-    String content = "";
-
-    while (dayFile.available()) {
-      content += dayFile.readString();
-    }
-
-    server.sendContent(content);
-
-    dayFile.close();
-    Serial.println(days[i]);
   }
 
   server.client().stop();
