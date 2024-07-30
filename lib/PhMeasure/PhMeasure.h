@@ -1,4 +1,4 @@
-class PhMesure {
+class PhMeasure {
  public:
   float debug_phVoltage;
   int phSensorPin;
@@ -6,7 +6,7 @@ class PhMesure {
   int phAcidVoltage;
 
  public:
-  PhMesure(int phSensorPin, int phNeutralVoltage, int phAcidVoltage);
+  PhMeasure(int phSensorPin, int phNeutralVoltage, int phAcidVoltage);
   void begin();
   float mesurePh();
 };

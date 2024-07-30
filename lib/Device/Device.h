@@ -26,6 +26,7 @@ class Device {
          WiFiClient _wifiClient,
          int _port = 80);
   ShellyPlug getShellyInfo();
+  bool fetchShellyState();
   void setShellyState(bool _state);
   void toggleShellyState();
   void checkButton();

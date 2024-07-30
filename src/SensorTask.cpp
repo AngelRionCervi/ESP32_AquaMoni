@@ -4,33 +4,41 @@ void SensorTaskCode(void* pvParameters) {
   Serial.print("SensorTask running on core ");
   Serial.println(xPortGetCoreID());
 
-  PhMesure phMesure(PH_SENSOR_PIN, PH_NEUTRAL_VOLTAGE, PH_ACID_VOLTAGE);
-  TempMesure tempMesure(TEMP_SENSOR_PIN);
+  PhMeasure phMeasure(PH_SENSOR_PIN, PH_NEUTRAL_VOLTAGE, PH_ACID_VOLTAGE);
+  TempMeasure tempMeasure(TEMP_SENSOR_PIN);
 
   for (;;) {
-    float phValue = phMesure.mesurePh();
-    float tempValue = tempMesure.mesureWaterTemp();
-
-    if (phValue > 15 || tempValue < 0) {
-      sensorError = true;
-      activityLed.setState("errorBlink");
-    } else {
-      sensorError = false;
-      activityLed.setState("ok");
+    if (millis() - measurementsUpdateLastMillis > measurementsUpdatePeriode) {
+      takeMeasurements(phMeasure, tempMeasure);
+      measurementsUpdateLastMillis = millis();
     }
 
-    float ph = decimalRound(phValue, 2);
-    float temp = decimalRound(tempValue, 2);
+    if (millis() - devicesStatesUpdateLastMillis > devicesStatesUpdatePeriode) {
+      balance_fetchDevicesStates();
+      devicesStatesUpdateLastMillis = millis();
+    }
 
-    Serial.println("temp: " + String(temp));
-    Serial.println("ph: " + String(ph));
-
-    // writeToSd(ph, temp);
-
-    // delay(10*60*1000);
-
-    delay(5000);
+    delay(2);
   }
+}
+
+void takeMeasurements(PhMeasure& phMeasure, TempMeasure& tempMeasure) {
+  float phValue = phMeasure.mesurePh();
+  float tempValue = tempMeasure.measureWaterTemp();
+
+  if (phValue > 15 || tempValue < 0) {
+    sensorError = true;
+    activityLed.setState("errorBlink");
+  } else {
+    sensorError = false;
+    activityLed.setState("ok");
+  }
+
+  float ph = decimalRound(phValue, 2);
+  float temp = decimalRound(tempValue, 2);
+
+  Serial.println("temp: " + String(temp));
+  Serial.println("ph: " + String(ph));
 }
 
 void writeToSd(float ph, float temp) {
@@ -83,5 +91,11 @@ void writeToHistorical(JsonDocument* currentData) {
   } else {
     Serial.println("error writing historical.jso");
     activityLed.setState("errorBlink");
+  }
+}
+
+void balance_fetchDevicesStates() {
+  for (auto& [_, device] : devices) {
+    device.fetchShellyState();
   }
 }

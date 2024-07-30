@@ -17,12 +17,7 @@ void ShellyPlug::toggleState() {
   setState(!state);
 }
 
-bool ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, String _name) {
-  address = _address;
-  port = _port;
-  wifiClient = _wifiClient;
-  name = _name;
-
+bool ShellyPlug::fetchState() {
   HttpClient httpClient = HttpClient(wifiClient, address, port);
   String request = "/relay/0";
 
@@ -31,7 +26,8 @@ bool ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, S
   String response = httpClient.responseBody();
 
   if (statusCode != 200) {
-    String errorMessage = String("[ShellyPlug] (init) could not get response from: ") + name;
+    String errorMessage =
+        String("[ShellyPlug] (init) could not get response from: ") + name;
     Serial.println(errorMessage);
     Serial.print("Status code: ");
     Serial.println(statusCode);
@@ -43,8 +39,22 @@ bool ShellyPlug::init(const char* _address, int _port, WiFiClient _wifiClient, S
   deserializeJson(doc, response);
 
   bool isOn = doc["ison"].as<bool>();
-
   state = isOn;
+
+  return state;
+}
+
+bool ShellyPlug::init(const char* _address,
+                      int _port,
+                      WiFiClient _wifiClient,
+                      String _name) {
+  address = _address;
+  port = _port;
+  wifiClient = _wifiClient;
+  name = _name;
+
+  this->fetchState();
+
   hasInit = true;
 
   return state;

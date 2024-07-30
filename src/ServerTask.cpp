@@ -441,6 +441,7 @@ void checkDevices() {
       device.checkButton();
     } else if (millis() - scheduleUpdateLastMillis > scheduleUpdatePeriode) {
       device.checkSchedule();
+      //device.fetchShellyState();
       updateMillis = true;
     }
   }

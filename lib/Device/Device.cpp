@@ -1,5 +1,5 @@
-#include "Device.h"
 #include <ESPDateTime.h>
+#include "Device.h"
 
 Device::Device(const char* _address,
                const char* _name,
@@ -82,4 +82,10 @@ void Device::checkSchedule() {
 
     shelly.setState(fullDayMinutes >= start && fullDayMinutes <= end);
   }
+}
+
+bool Device::fetchShellyState() {
+  shellyState = shelly.fetchState();
+  this->updateLed();
+  return shellyState;
 }

@@ -1,13 +1,13 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-class TempMesure {
+class TempMeasure {
 public:
   OneWire oneWire;
   DallasTemperature ds;
   int tempSensorPin;
 public:
-  TempMesure(int _tempSensorPin);
+  TempMeasure(int _tempSensorPin);
   void begin();
-  float mesureWaterTemp();
+  float measureWaterTemp();
 };

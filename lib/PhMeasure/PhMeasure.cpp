@@ -1,16 +1,16 @@
-#include "PhMesure.h"
+#include "PhMeasure.h"
 #include "Arduino.h"
 
-PhMesure::PhMesure(int phSensorPin, int phNeutralVoltage, int phAcidVoltage)
+PhMeasure::PhMeasure(int phSensorPin, int phNeutralVoltage, int phAcidVoltage)
     : phSensorPin(phSensorPin)
     , phNeutralVoltage(phNeutralVoltage)
     , phAcidVoltage(phAcidVoltage)
 {
 }
 
-void PhMesure::begin() { pinMode(phSensorPin, INPUT); }
+void PhMeasure::begin() { pinMode(phSensorPin, INPUT); }
 
-float PhMesure::mesurePh()
+float PhMeasure::mesurePh()
 {
     int buffer_arr[10];
     float sumAvgVoltage = 0.0;

@@ -21,13 +21,17 @@ extern std::map<int, int> ledMap;
 extern std::unordered_map<std::string, Device> devices;
 extern WiFiClient wifiClient;
 extern WebServer server;
-extern int scheduleUpdatePeriode;
-extern int scheduleUpdateLastMillis;
 extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
 extern String sessionId;
 extern ScheduleButton scheduleButton;
 extern ActivityLed activityLed;
+extern int scheduleUpdatePeriode;
+extern int scheduleUpdateLastMillis;
+extern int devicesStatesUpdatePeriode;
+extern int devicesStatesUpdateLastMillis;
+extern int measurementsUpdatePeriode;
+extern int measurementsUpdateLastMillis;
 
 #endif

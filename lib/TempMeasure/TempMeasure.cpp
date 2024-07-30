@@ -1,18 +1,18 @@
-#include "TempMesure.h"
+#include "TempMeasure.h"
 #include "Arduino.h"
 
-TempMesure::TempMesure(int _tempSensorPin) {
+TempMeasure::TempMeasure(int _tempSensorPin) {
   tempSensorPin = _tempSensorPin;
   oneWire = OneWire(tempSensorPin);
   ds = DallasTemperature(&oneWire);
 }
 
-void TempMesure::begin() {
+void TempMeasure::begin() {
   ds.begin();
   ds.setResolution(12);
 }
 
-float TempMesure::mesureWaterTemp() {
+float TempMeasure::measureWaterTemp() {
   ds.requestTemperatures();
   float temperature = ds.getTempCByIndex(0);
 
