@@ -84,6 +84,9 @@ JsonDocument getConfig() {
 void loadConfig(JsonDocument& configJson) {
   activityLed.update();
   JsonObject secretsJson = configJson["secrets"];
+  JsonObject settingsConfig = configJson["settings"];
+  autoSchedulesOnAfter = settingsConfig["autoSchedulesOnAfter"].as<int>();
+  enableMonitoring = settingsConfig["enableMonitoring"].as<bool>();
   wifiSSID = secretsJson["wifiSSID"].as<String>();
   wifiPass = secretsJson["wifiPass"].as<String>();
   serverPass = secretsJson["serverPass"].as<String>();
@@ -135,7 +138,7 @@ void setup(void) {
   Serial.println("Setting up devices...");
   setupDevices(config);
 
-  scheduleButton.update(false);
+  scheduleButton.setState(true);
 
   activityLed.setState("ok");
 
@@ -160,6 +163,5 @@ void setup(void) {
 }
 
 void loop(void) {
-  // server.handleClient();
   delay(2);  // allow the cpu to switch to other tasks
 }

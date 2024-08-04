@@ -25,6 +25,8 @@ extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
 extern String sessionId;
+extern int autoSchedulesOnAfter;
+extern bool enableMonitoring;
 extern ScheduleButton scheduleButton;
 extern ActivityLed activityLed;
 extern int scheduleUpdatePeriode;
@@ -33,5 +35,7 @@ extern int devicesStatesUpdatePeriode;
 extern int devicesStatesUpdateLastMillis;
 extern int measurementsUpdatePeriode;
 extern int measurementsUpdateLastMillis;
+extern int scheduleOnPeriode;
+extern int scheduleOnLastMillis;
 
 #endif

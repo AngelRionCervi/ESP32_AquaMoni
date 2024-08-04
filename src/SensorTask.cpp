@@ -8,14 +8,24 @@ void SensorTaskCode(void* pvParameters) {
   TempMeasure tempMeasure(TEMP_SENSOR_PIN);
 
   for (;;) {
-    if (millis() - measurementsUpdateLastMillis > measurementsUpdatePeriode) {
+    int millisNow = millis();
+
+    if ((millisNow - measurementsUpdateLastMillis >
+         measurementsUpdatePeriode) &&
+        enableMonitoring) {
       takeMeasurements(phMeasure, tempMeasure);
-      measurementsUpdateLastMillis = millis();
+      measurementsUpdateLastMillis = millisNow;
     }
 
-    if (millis() - devicesStatesUpdateLastMillis > devicesStatesUpdatePeriode) {
+    if (millisNow - devicesStatesUpdateLastMillis >
+        devicesStatesUpdatePeriode) {
       balance_fetchDevicesStates();
-      devicesStatesUpdateLastMillis = millis();
+      devicesStatesUpdateLastMillis = millisNow;
+    }
+
+    if (millisNow - scheduleOnLastMillis > scheduleOnPeriode) {
+      balance_checkForAutoScheduleOn();
+      scheduleOnLastMillis = millisNow;
     }
 
     delay(2);
@@ -97,5 +107,18 @@ void writeToHistorical(JsonDocument* currentData) {
 void balance_fetchDevicesStates() {
   for (auto& [_, device] : devices) {
     device.fetchShellyState();
+  }
+}
+
+void balance_checkForAutoScheduleOn() {
+  if (scheduleButton.getState() || autoSchedulesOnAfter == 0) {
+    return;
+  }
+
+  int autoScheduleOnAfterMillis = autoSchedulesOnAfter * 60;
+
+  if (DateTime.now() - scheduleButton.getScheduleOnStartTime() >
+      autoScheduleOnAfterMillis) {
+    scheduleButton.setState(true);
   }
 }

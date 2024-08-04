@@ -12,14 +12,18 @@ WebServer server(80);
 int scheduleUpdatePeriode = 3000;
 int devicesStatesUpdatePeriode = 3000; 
 int measurementsUpdatePeriode = 5000; //10*60*1000
+int scheduleOnPeriode = 1000;
 int scheduleUpdateLastMillis = 0;
 int devicesStatesUpdateLastMillis = 0;
 int measurementsUpdateLastMillis = 0;
+int scheduleOnLastMillis = 0;
 
 String wifiSSID;
 String wifiPass;
 String serverPass;
 String sessionId;
+int autoSchedulesOnAfter;
+bool enableMonitoring;
 
 ScheduleButton scheduleButton(BUTTON_SCHEDULE_PIN, SCHEDULE_LED_GREEN_PIN, SCHEDULE_LED_RED_PIN);
 ActivityLed activityLed(ACTIVITY_LED_GREEN_PIN, ACTIVITY_LED_RED_PIN);

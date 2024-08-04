@@ -83,7 +83,7 @@ void handleHistorical() {
       server.sendContent(content);
 
       dayFile.close();
-      //Serial.println(days[i]);
+      // Serial.println(days[i]);
     }
   }
 
@@ -154,7 +154,7 @@ void handleDeviceManualToggle() {
     return;
   }
 
-  if (!areSchedulesDisabled) {
+  if (!scheduleButton.getState()) {
     JsonDocument donePayloadJson;
     donePayloadJson["status"] = "error";
     donePayloadJson["message"] = "Schedules not disabled !";
@@ -184,13 +184,11 @@ void handleScheduleManualToggle() {
     return;
   }
 
-  areSchedulesDisabled = !areSchedulesDisabled;
+  scheduleButton.toggleState();
 
   JsonDocument donePayloadJson;
   donePayloadJson["status"] = "success";
-  donePayloadJson["newState"] = areSchedulesDisabled;
-
-  scheduleButton.update(areSchedulesDisabled);
+  donePayloadJson["newState"] = scheduleButton.getState();
 
   String donePayloadString;
   serializeJson(donePayloadJson, donePayloadString);
@@ -252,7 +250,7 @@ void handleGetHardwareToggleUpdate() {
   }
 
   update["devices"] = devicesStateArray;
-  update["isScheduleOn"] = !areSchedulesDisabled;
+  update["isScheduleOn"] = scheduleButton.getState();
 
   JsonDocument updateResponseJson;
   updateResponseJson["data"] = update;
@@ -303,7 +301,7 @@ void handleGetScheduleState() {
   }
 
   JsonDocument getScheduleStateResponseJson;
-  getScheduleStateResponseJson["data"] = areSchedulesDisabled;
+  getScheduleStateResponseJson["data"] = scheduleButton.getState();
   getScheduleStateResponseJson["status"] = "success";
 
   String getScheduleStateResponseString;
@@ -437,11 +435,11 @@ void checkDevices() {
   int updateMillis = false;
 
   for (auto& [_, device] : devices) {
-    if (areSchedulesDisabled) {
+    if (!scheduleButton.getState()) {
       device.checkButton();
     } else if (millis() - scheduleUpdateLastMillis > scheduleUpdatePeriode) {
       device.checkSchedule();
-      //device.fetchShellyState();
+      // device.fetchShellyState();
       updateMillis = true;
     }
   }
@@ -453,8 +451,8 @@ void checkDevices() {
 
 void checkScheduleButton() {
   bool newState = scheduleButton.checkButton();
-  if (newState != areSchedulesDisabled) {
-    areSchedulesDisabled = newState;
+  if (newState != scheduleButton.getState()) {
+    scheduleButton.setState(newState);
   }
 }
 
