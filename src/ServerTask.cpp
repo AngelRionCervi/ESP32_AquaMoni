@@ -317,27 +317,14 @@ void handleLogin() {
   String loginString;
   int statusCode = 401;
 
-  if (server.hasArg("DISCONNECT")) {  // TODO
-    Serial.println("Disconnection");
-    server.sendHeader("Cache-Control", "no-cache");
-    server.sendHeader("Set-Cookie", "sessionId=0");
-    return;
-  }
-
   if (server.arg(0)) {
     JsonDocument authBody = deserializePost(server.arg(0));
 
     if (authBody["pass"] == serverPass) {
-      server.sendHeader("Cache-Control", "no-cache");
-      server.sendHeader("Set-Cookie",
-                        "sessionId=" + String(sessionId) +
-                            String("; Max-Age=2592000; HttpOnly"));
-      Serial.println("Log in Successful");
       loginJson["status"] = "success";
-      loginJson["data"] = sessionId;
+      loginJson["data"] = "Log in success !";
       statusCode = 200;
     } else {
-      Serial.println("Log in Failed");
       loginJson["status"] = "error";
       loginJson["data"] = "Log in Failed";
     }
@@ -347,7 +334,7 @@ void handleLogin() {
   }
 
   serializeJson(loginJson, loginString);
-  server.send(statusCode, "application/json", loginString);
+  server.send(200, "application/json", loginString);
 
   return;
 }
