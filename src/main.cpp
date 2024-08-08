@@ -21,6 +21,8 @@
 TaskHandle_t SensorTask;
 TaskHandle_t ServerTask;
 
+WebSocketClient client = WebSocketClient(wifiClient, "/raw", 3000);
+
 void setupWifi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifiSSID, wifiPass);
