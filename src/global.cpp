@@ -8,6 +8,7 @@ std::unordered_map<std::string, Device> devices;
 
 WiFiClient wifiClient;
 WebServer server(80);
+WebSocketClient wsClient(wifiClient, "192.168.1.18", 5173);
 
 int scheduleUpdatePeriode = 3000;
 int devicesStatesUpdatePeriode = 3000; 

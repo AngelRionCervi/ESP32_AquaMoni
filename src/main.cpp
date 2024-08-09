@@ -13,7 +13,7 @@
 
 #include "Device.h"
 #include "SensorTask.h"
-#include "ServerTask.h"
+#include "ServerTask2.h"
 #include "constants.h"
 #include "global.h"
 #include "secrets.h"
@@ -21,11 +21,9 @@
 TaskHandle_t SensorTask;
 TaskHandle_t ServerTask;
 
-WebSocketClient client = WebSocketClient(wifiClient, "/raw", 3000);
-
 void setupWifi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(wifiSSID, wifiPass);
+  WiFi.begin("LA6EC", "getRektm8");
   Serial.print("WiFi Connecting...");
   while (WiFi.status() != WL_CONNECTED) {
     activityLed.update();
@@ -98,8 +96,8 @@ void setupDevices(JsonDocument& configJson) {
   JsonArray deviceArray = configJson["devices"];
 
   for (auto const& [_, value] : ledMap) {
-    pinMode(value, OUTPUT);
-    digitalWrite(value, LOW);
+    // pinMode(value, OUTPUT);
+    // digitalWrite(value, LOW);
   }
 
   for (int i = 0; i < deviceArray.size(); i++) {
@@ -138,7 +136,7 @@ void setup(void) {
   setupDateTime();
 
   Serial.println("Setting up devices...");
-  setupDevices(config);
+  //setupDevices(config);
 
   scheduleButton.setState(true);
 
@@ -146,13 +144,13 @@ void setup(void) {
 
   Serial.println("Starting tasks...");
   xTaskCreatePinnedToCore(
-      ServerTaskCode, /* Task function. */
-      "ServerTask",   /* name of task. */
-      10000,          /* Stack size of task */
-      NULL,           /* parameter of the task */
-      1,              /* priority of the task */
-      &ServerTask,    /* Task handle to keep track of created task */
-      0);             /* pin task to core 0 */
+      ServerTaskCode2, /* Task function. */
+      "ServerTask",    /* name of task. */
+      10000,           /* Stack size of task */
+      NULL,            /* parameter of the task */
+      1,               /* priority of the task */
+      &ServerTask,     /* Task handle to keep track of created task */
+      0);              /* pin task to core 0 */
 
   xTaskCreatePinnedToCore(
       SensorTaskCode, /* Task function. */

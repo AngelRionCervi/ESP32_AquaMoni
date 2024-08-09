@@ -17,8 +17,8 @@ Device::Device(const char* _address,
   schedule = _schedule;
   button = _button;
 
-  pinMode(_buttonPin, INPUT_PULLUP);
-  pinMode(_ledPin, OUTPUT);
+  // pinMode(_buttonPin, INPUT_PULLUP);
+  // pinMode(_ledPin, OUTPUT);
 
   debouncer = ADebouncer();
   debouncer.mode(DELAYED, 10, LOW);
@@ -26,7 +26,7 @@ Device::Device(const char* _address,
   shelly = ShellyPlug();
   bool initState = shelly.init(_address, _port, _wifiClient, name);
   shellyState = initState;
-  digitalWrite(ledPin, shellyState);
+  //digitalWrite(ledPin, shellyState);
 }
 
 ShellyPlug Device::getShellyInfo() {

@@ -1,44 +1,44 @@
-#pragma once
-#include <ArduinoJson.h>
-#include <ESPmDNS.h>
-#include <SD.h>
+// #pragma once
+// #include <ArduinoJson.h>
+// #include <ESPmDNS.h>
+// #include <SD.h>
 
-#include "Device.h"
-#include "constants.h"
-#include "global.h"
-#include "secrets.h"
-#include "utils.h"
+// #include "Device.h"
+// #include "constants.h"
+// #include "global.h"
+// #include "secrets.h"
+// #include "utils.h"
 
-void handleLast();
+// void handleLast();
 
-void handleHistorical();
+// void handleHistorical();
 
-void handleUpdateConfig();
+// void handleUpdateConfig();
 
-void handleNotFound();
+// void handleNotFound();
 
-void handleDeviceManualToggle();
+// void handleDeviceManualToggle();
 
-void handleScheduleManualToggle();
+// void handleScheduleManualToggle();
 
-void handleGetDevices();
+// void handleGetDevices();
 
-void handleGetConfig();
+// void handleGetConfig();
 
-void handleGetScheduleState();
+// void handleGetScheduleState();
 
-void handleLogin();
+// void handleLogin();
 
-void handlePing();
+// void handlePing();
 
-void handleRestart();
+// void handleRestart();
 
-void ServerTaskCode(void* pvParameters);
+// void ServerTaskCode(void* pvParameters);
 
-void checkDevices();
+// void checkDevices();
 
-bool isAuthentified();
+// bool isAuthentified();
 
-void checkScheduleButton();
+// void checkScheduleButton();
 
-JsonDocument deserializePost(String body);
+// JsonDocument deserializePost(String body);

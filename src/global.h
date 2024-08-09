@@ -21,6 +21,7 @@ extern std::map<int, int> ledMap;
 extern std::unordered_map<std::string, Device> devices;
 extern WiFiClient wifiClient;
 extern WebServer server;
+extern WebSocketClient wsClient;
 extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
