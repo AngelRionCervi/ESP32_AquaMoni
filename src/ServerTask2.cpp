@@ -1,18 +1,18 @@
 #include "ServerTask2.h"
 
-String handShakeType = "handshake";
-String initType = "init";
-String updateConfigType = "update_config";
-String deviceToggleType = "device_manual_toggle";
-String scheduleToggleType = "schedule_toggle";
-String getDevicesInfoType = "get_devices_infos";
-String getHardwareToggleUpdateType = "get_hardware_toggle_update";
-String getConfigType = "get_config";
-String getScheduleStateType = "get_schedule_state";
-String pingType = "ping";
-String restartType = "restart";
-String fetchLastType = "fetch_last";
-String fetchHistoricalType = "fetch_historical";
+String handShakeType = "box_handshake";
+String initType = "box_init";
+String updateConfigType = "box_update_config";
+String deviceToggleType = "box_device_manual_toggle";
+String scheduleToggleType = "box_schedule_toggle";
+String getDevicesInfoType = "box_get_devices_infos";
+String getHardwareToggleUpdateType = "box_get_hardware_toggle_update";
+String getConfigType = "box_get_config";
+String getScheduleStateType = "box_get_schedule_state";
+String pingType = "box_ping";
+String restartType = "box_restart";
+String fetchLastType = "box_fetch_last";
+String fetchHistoricalType = "box_fetch_historical";
 
 void messageToMethods(String message) {
   JsonDocument messageJson;
@@ -24,7 +24,8 @@ void messageToMethods(String message) {
   if (type == handShakeType) {
     sendHandShake();
   } else if (type == initType) {
-    sendInitBox();
+    // sendInitBox();
+    handleGetConfig();
   } else if (type == updateConfigType) {
     handleUpdateConfig(dataJson);
   } else if (type == deviceToggleType) {
@@ -53,20 +54,29 @@ void messageToMethods(String message) {
 }
 
 void checkForMessage() {
-  int messageSize = wsClient.parseMessage();
+  //int messageSize = wsClient.parseMessage();
 
-  if (messageSize > 0) {
-    String message = wsClient.readString();
-    Serial.println("Received a message: ");
-    Serial.println(message);
-    messageToMethods(message);
-  }
+  // if (messageSize > 0) {
+  //   String message = wsClient.readString();
+  //   Serial.println("Received a message: ");
+  //   Serial.println(message);
+  //   messageToMethods(message);
+  // }
 }
 
 void sendMessage(String message) {
-  wsClient.beginMessage(TYPE_TEXT);
-  wsClient.print(message);
-  wsClient.endMessage();
+  
+  Serial.println("Sending message: ");
+  Serial.println(message);
+
+  //int isStartOk = wsClient.beginMessage(TYPE_TEXT);
+  //wsClient.println(message);
+  webSocket.sendTXT(message);
+  //int isEndOk = wsClient.endMessage();
+  // Serial.println("start Ok: ");
+  // Serial.println(isStartOk);
+  // Serial.println("end Ok: ");
+  // Serial.println(isEndOk);
 }
 
 void sendSuccess(JsonDocument& successJson) {
@@ -74,6 +84,7 @@ void sendSuccess(JsonDocument& successJson) {
   successJson["source"] = "box";
   String successString;
   serializeJson(successJson, successString);
+
   sendMessage(successString);
 }
 
@@ -92,7 +103,7 @@ void sendError(String errorMessage, String type) {
 
 void sendHandShake() {
   JsonDocument handShakeJson;
-  handShakeJson["data"] = "box";
+  handShakeJson["data"] = boxId;
   handShakeJson["type"] = handShakeType;
 
   sendSuccess(handShakeJson);
@@ -102,7 +113,8 @@ void sendInitBox() {
   // JsonDocument initBoxJson;
 
   handleGetConfig();
-  handleGetDevices();
+
+  // handleGetDevices();
 
   // initBoxJson["data"] = "1234";  // box config + devices states
   // initBoxJson["type"] = initType;
@@ -222,6 +234,7 @@ void handleGetConfig() {
     String errorMessage = "Could not open config.jso in [handleGetConfig]";
     Serial.println(errorMessage);
     sendError(errorMessage, type);
+    return;
   }
 
   String configString;
@@ -278,19 +291,71 @@ void handleRestart() {
   return;
 }
 
+void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+  switch (type) {
+    case WStype_DISCONNECTED:
+      Serial.printf("[WSc] Disconnected!\n");
+      break;
+    case WStype_CONNECTED:
+      Serial.printf("[WSc] Connected to url: %s\n", payload);
+
+      // send message to server when Connected
+      webSocket.sendTXT("Connected");
+      sendHandShake();
+      handleGetConfig();
+      break;
+    case WStype_TEXT:
+      Serial.printf("[WSc] get text: %s\n", payload);
+
+      // send message to server
+      // webSocket.sendTXT("message here");
+      break;
+    case WStype_BIN:
+      Serial.printf("[WSc] get binary length: %u\n", length);
+      //hexdump(payload, length);
+
+      // send data to server
+      // webSocket.sendBIN(payload, length);
+      break;
+    case WStype_ERROR:
+    case WStype_FRAGMENT_TEXT_START:
+    case WStype_FRAGMENT_BIN_START:
+    case WStype_FRAGMENT:
+    case WStype_FRAGMENT_FIN:
+      break;
+  }
+}
+
 void ServerTaskCode2(void* pvParameters) {
-  int startState = wsClient.begin("/websocket");
-  Serial.print("startState: ");
-  Serial.println(startState);
+  // int startState = wsClient.begin("/websocket");
+  //  Serial.print("startState: ");
+  //  Serial.println(startState);
 
-  sendHandShake();
+  
 
-  int count = 0;
+  // int count = 0;
+  Serial.println("Connecting to websocket server");
+  webSocket.begin("192.168.1.18", 5173, "/websocket");
+
+  // event handler
+  webSocket.onEvent(webSocketEvent);
+
+  // use HTTP Basic Authorization this is optional remove if not needed
+  //webSocket.setAuthorization("user", "Password");
+
+  // try ever 5000 again if connection has failed
+  webSocket.setReconnectInterval(5000);
+
+  // while (wsClient.connected()) {
+  //   checkForMessage();
+  // }
 
   for (;;) {
-    checkForMessage();
+    // checkForMessage();
 
-    delay(2);  // allow the cpu to switch to other tasks
+    // delay(2);  // allow the cpu to switch to other tasks
+    webSocket.loop();
+    delay(2);
   }
 }
 

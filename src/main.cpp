@@ -7,6 +7,7 @@
 #include <WebServer.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <WebSocketsClient.h>
 
 #include <map>
 #include <unordered_map>
@@ -85,6 +86,7 @@ void loadConfig(JsonDocument& configJson) {
   activityLed.update();
   JsonObject secretsJson = configJson["secrets"];
   JsonObject settingsConfig = configJson["settings"];
+  boxId = configJson["id"].as<String>();
   autoSchedulesOnAfter = settingsConfig["autoSchedulesOnAfter"].as<int>();
   enableMonitoring = settingsConfig["enableMonitoring"].as<bool>();
   wifiSSID = secretsJson["wifiSSID"].as<String>();

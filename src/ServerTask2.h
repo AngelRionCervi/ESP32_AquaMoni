@@ -15,6 +15,8 @@ void sendMessage(String message);
 
 void sendSuccess(JsonDocument& successJson);
 
+void webSocketEvent(WStype_t type, uint8_t* payload, size_t length);
+
 void sendError(String errorMessage, String type);
 
 void sendHandShake();

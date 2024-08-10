@@ -1,12 +1,13 @@
 #pragma once
 #include <WebServer.h>
-
+#include <WebSocketsClient.h>
 #include <map>
 #include <unordered_map>
 
 #include "Device.h"
 #include "ScheduleButton.h"
 #include "ActivityLed.h"
+
 
 #ifndef MY_GLOBALS_H
 #define MY_GLOBALS_H
@@ -21,7 +22,7 @@ extern std::map<int, int> ledMap;
 extern std::unordered_map<std::string, Device> devices;
 extern WiFiClient wifiClient;
 extern WebServer server;
-extern WebSocketClient wsClient;
+extern WebSocketsClient webSocket;
 extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
@@ -38,5 +39,6 @@ extern int measurementsUpdatePeriode;
 extern int measurementsUpdateLastMillis;
 extern int scheduleOnPeriode;
 extern int scheduleOnLastMillis;
+extern String boxId;
 
 #endif
