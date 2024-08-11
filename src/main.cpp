@@ -56,7 +56,7 @@ void setupSD() {
     Serial.println("SD card initialization failed!");
     activityLed.setState("error");
     activityLed.update();
-    delay(5000);
+    delay(2000);
     setupSD();
   }
 }

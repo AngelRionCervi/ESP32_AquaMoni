@@ -99,6 +99,20 @@ void sendError(String errorMessage, String type) {
   sendMessage(errorString);
 }
 
+void sendError(String errorMessage, String type, JsonDocument& info) {
+  JsonDocument errorJson;
+  String errorString;
+
+  errorJson["status"] = "error";
+  errorJson["type"] = type;
+  errorJson["data"] = errorMessage;
+  errorJson["source"] = "box";
+  errorJson["info"] = info;
+
+  serializeJson(errorJson, errorString);
+  sendMessage(errorString);
+}
+
 void sendHandShake() {
   JsonDocument handShakeJson;
   handShakeJson["data"] = boxId;
@@ -112,6 +126,7 @@ void sendInitBox() {
 
   handleGetConfig();
   handleGetDevices();
+  handleGetScheduleState();
 
   // initBoxJson["data"] = "1234";  // box config + devices states
   // initBoxJson["type"] = initType;
@@ -141,7 +156,16 @@ void handleUpdateConfig(JsonVariant newConfigJson) {
 }
 
 void handleDeviceManualToggle(String deviceId) {
-  if (!scheduleButton.getState()) {
+  if (scheduleButton.getState()) {
+    return;
+  }
+
+  if (devices.count(deviceId.c_str()) == 0) {
+    String errorMessage = "Device not found [handleDeviceManualToggle]";
+    Serial.println(errorMessage);
+    JsonDocument dataJson;
+    dataJson["id"] = deviceId;
+    sendError(errorMessage, deviceToggleType, dataJson);
     return;
   }
 
@@ -150,8 +174,12 @@ void handleDeviceManualToggle(String deviceId) {
   device.toggleShellyState();
   bool newState = device.shellyState;
 
+  JsonDocument dataJson;
+  dataJson["id"] = deviceId;
+  dataJson["state"] = newState;
+
   JsonDocument donePayloadJson;
-  donePayloadJson["data"] = newState;
+  donePayloadJson["data"] = dataJson;
   donePayloadJson["type"] = deviceToggleType;
 
   sendSuccess(donePayloadJson);

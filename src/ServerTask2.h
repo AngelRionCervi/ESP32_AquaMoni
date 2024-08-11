@@ -19,6 +19,8 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length);
 
 void sendError(String errorMessage, String type);
 
+void sendError(String errorMessage, String type, JsonDocument& infos);
+
 void sendHandShake();
 
 void sendInitBox();
