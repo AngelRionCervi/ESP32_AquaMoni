@@ -24,8 +24,7 @@ void messageToMethods(String message) {
   if (type == handShakeType) {
     sendHandShake();
   } else if (type == initType) {
-    // sendInitBox();
-    handleGetConfig();
+    sendInitBox();
   } else if (type == updateConfigType) {
     handleUpdateConfig(dataJson);
   } else if (type == deviceToggleType) {
@@ -54,7 +53,7 @@ void messageToMethods(String message) {
 }
 
 void checkForMessage() {
-  //int messageSize = wsClient.parseMessage();
+  // int messageSize = wsClient.parseMessage();
 
   // if (messageSize > 0) {
   //   String message = wsClient.readString();
@@ -65,18 +64,17 @@ void checkForMessage() {
 }
 
 void sendMessage(String message) {
-  
   Serial.println("Sending message: ");
   Serial.println(message);
 
-  //int isStartOk = wsClient.beginMessage(TYPE_TEXT);
-  //wsClient.println(message);
+  // int isStartOk = wsClient.beginMessage(TYPE_TEXT);
+  // wsClient.println(message);
   webSocket.sendTXT(message);
-  //int isEndOk = wsClient.endMessage();
-  // Serial.println("start Ok: ");
-  // Serial.println(isStartOk);
-  // Serial.println("end Ok: ");
-  // Serial.println(isEndOk);
+  // int isEndOk = wsClient.endMessage();
+  //  Serial.println("start Ok: ");
+  //  Serial.println(isStartOk);
+  //  Serial.println("end Ok: ");
+  //  Serial.println(isEndOk);
 }
 
 void sendSuccess(JsonDocument& successJson) {
@@ -113,8 +111,7 @@ void sendInitBox() {
   // JsonDocument initBoxJson;
 
   handleGetConfig();
-
-  // handleGetDevices();
+  handleGetDevices();
 
   // initBoxJson["data"] = "1234";  // box config + devices states
   // initBoxJson["type"] = initType;
@@ -123,7 +120,7 @@ void sendInitBox() {
 }
 
 void handleUpdateConfig(JsonVariant newConfigJson) {
-  String type = "update_config";
+  String type = updateConfigType;
   File fileConfig = SD.open(FILE_CONFIG, "w");
 
   if (!fileConfig) {
@@ -294,28 +291,24 @@ void handleRestart() {
 void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      Serial.printf("[WSc] Disconnected!\n");
+      Serial.println("[WSc] Disconnected!");
       break;
     case WStype_CONNECTED:
-      Serial.printf("[WSc] Connected to url: %s\n", payload);
+      Serial.print("[WSc] Connected to url: ");
+      Serial.println((char*)payload);
 
-      // send message to server when Connected
-      webSocket.sendTXT("Connected");
       sendHandShake();
-      handleGetConfig();
       break;
     case WStype_TEXT:
-      Serial.printf("[WSc] get text: %s\n", payload);
+      Serial.print("[WSc] get text: ");
+      Serial.println((char*)payload);
 
-      // send message to server
-      // webSocket.sendTXT("message here");
+      messageToMethods((char*)payload);
       break;
     case WStype_BIN:
-      Serial.printf("[WSc] get binary length: %u\n", length);
-      //hexdump(payload, length);
+      Serial.print("[WSc] get binary, length: ");
+      Serial.println(length);
 
-      // send data to server
-      // webSocket.sendBIN(payload, length);
       break;
     case WStype_ERROR:
     case WStype_FRAGMENT_TEXT_START:
@@ -327,33 +320,12 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
 }
 
 void ServerTaskCode2(void* pvParameters) {
-  // int startState = wsClient.begin("/websocket");
-  //  Serial.print("startState: ");
-  //  Serial.println(startState);
-
-  
-
-  // int count = 0;
   Serial.println("Connecting to websocket server");
   webSocket.begin("192.168.1.18", 5173, "/websocket");
-
-  // event handler
   webSocket.onEvent(webSocketEvent);
-
-  // use HTTP Basic Authorization this is optional remove if not needed
-  //webSocket.setAuthorization("user", "Password");
-
-  // try ever 5000 again if connection has failed
   webSocket.setReconnectInterval(5000);
 
-  // while (wsClient.connected()) {
-  //   checkForMessage();
-  // }
-
   for (;;) {
-    // checkForMessage();
-
-    // delay(2);  // allow the cpu to switch to other tasks
     webSocket.loop();
     delay(2);
   }
