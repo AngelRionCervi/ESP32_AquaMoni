@@ -138,7 +138,7 @@ void setup(void) {
   setupDateTime();
 
   Serial.println("Setting up devices...");
-  //setupDevices(config);
+  setupDevices(config);
 
   scheduleButton.setState(true);
 

@@ -33,8 +33,6 @@ void handleScheduleManualToggle();
 
 void handleGetDevices();
 
-void handleGetHardwareToggleUpdate();
-
 void handleGetConfig();
 
 void handleGetScheduleState();

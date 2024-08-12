@@ -6,7 +6,6 @@ String updateConfigType = "box_update_config";
 String deviceToggleType = "box_device_manual_toggle";
 String scheduleToggleType = "box_schedule_toggle";
 String getDevicesInfoType = "box_get_devices_infos";
-String getHardwareToggleUpdateType = "box_get_hardware_toggle_update";
 String getConfigType = "box_get_config";
 String getScheduleStateType = "box_get_schedule_state";
 String pingType = "box_ping";
@@ -33,8 +32,6 @@ void messageToMethods(String message) {
     handleScheduleManualToggle();
   } else if (type == getDevicesInfoType) {
     handleGetDevices();
-  } else if (type == getHardwareToggleUpdateType) {
-    handleGetHardwareToggleUpdate();
   } else if (type == getConfigType) {
     handleGetConfig();
   } else if (type == getScheduleStateType) {
@@ -199,6 +196,31 @@ void handleScheduleManualToggle() {
   return;
 }
 
+// void handleGetDevices() {
+//   JsonDocument devicesJson;
+//   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
+
+//   for (auto& [id, device] : devices) {
+//     JsonDocument deviceJson;
+//     ShellyPlug deviceShelly = device.getShellyInfo();
+//     deviceJson["name"] = device.name;
+//     deviceJson["id"] = id;
+//     deviceJson["state"] = deviceShelly.state;
+//     deviceJson["isOnline"] = deviceShelly.hasInit;
+//     deviceJson["schedule"] = device.schedule;
+//     deviceJson["button"] = device.button;
+//     devicesStateArray.add(deviceJson);
+//   }
+
+//   JsonDocument devicesStateResponseJson;
+//   devicesStateResponseJson["data"] = devicesStateArray;
+//   devicesStateResponseJson["type"] = getDevicesInfoType;
+
+//   sendSuccess(devicesStateResponseJson);
+
+//   return;
+// }
+
 void handleGetDevices() {
   JsonDocument devicesJson;
   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
@@ -210,41 +232,12 @@ void handleGetDevices() {
     deviceJson["id"] = id;
     deviceJson["state"] = deviceShelly.state;
     deviceJson["isOnline"] = deviceShelly.hasInit;
-    deviceJson["schedule"] = device.schedule;
-    deviceJson["button"] = device.button;
     devicesStateArray.add(deviceJson);
   }
-
-  JsonDocument devicesStateResponseJson;
-  devicesStateResponseJson["data"] = devicesStateArray;
-  devicesStateResponseJson["type"] = getDevicesInfoType;
-
-  sendSuccess(devicesStateResponseJson);
-
-  return;
-}
-
-void handleGetHardwareToggleUpdate() {
-  JsonDocument update;
-  JsonDocument devicesJson;
-  JsonArray devicesStateArray = devicesJson.to<JsonArray>();
-
-  for (auto& [id, device] : devices) {
-    JsonDocument deviceJson;
-    ShellyPlug deviceShelly = device.getShellyInfo();
-    deviceJson["name"] = device.name;
-    deviceJson["id"] = id;
-    deviceJson["state"] = deviceShelly.state;
-    deviceJson["isOnline"] = deviceShelly.hasInit;
-    devicesStateArray.add(deviceJson);
-  }
-
-  update["devices"] = devicesStateArray;
-  update["isScheduleOn"] = scheduleButton.getState();
 
   JsonDocument updateResponseJson;
-  updateResponseJson["data"] = update;
-  updateResponseJson["type"] = getHardwareToggleUpdateType;
+  updateResponseJson["data"] = devicesStateArray;
+  updateResponseJson["type"] = getDevicesInfoType;
 
   sendSuccess(updateResponseJson);
 
@@ -352,6 +345,7 @@ void ServerTaskCode2(void* pvParameters) {
   webSocket.begin("192.168.1.18", 5173, "/websocket");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
+  sendHandShake();
 
   for (;;) {
     webSocket.loop();
