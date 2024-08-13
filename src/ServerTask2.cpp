@@ -342,10 +342,11 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
 
 void ServerTaskCode2(void* pvParameters) {
   Serial.println("Connecting to websocket server");
+  // for prod: webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
+  // for local :
   webSocket.begin("192.168.1.18", 5173, "/websocket");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
-  sendHandShake();
 
   for (;;) {
     webSocket.loop();
