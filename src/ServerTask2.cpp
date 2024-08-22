@@ -49,34 +49,16 @@ void messageToMethods(String message) {
   }
 }
 
-void checkForMessage() {
-  // int messageSize = wsClient.parseMessage();
-
-  // if (messageSize > 0) {
-  //   String message = wsClient.readString();
-  //   Serial.println("Received a message: ");
-  //   Serial.println(message);
-  //   messageToMethods(message);
-  // }
-}
-
 void sendMessage(String message) {
   Serial.println("Sending message: ");
   Serial.println(message);
-
-  // int isStartOk = wsClient.beginMessage(TYPE_TEXT);
-  // wsClient.println(message);
   webSocket.sendTXT(message);
-  // int isEndOk = wsClient.endMessage();
-  //  Serial.println("start Ok: ");
-  //  Serial.println(isStartOk);
-  //  Serial.println("end Ok: ");
-  //  Serial.println(isEndOk);
 }
 
 void sendSuccess(JsonDocument& successJson) {
   successJson["status"] = "success";
   successJson["source"] = "box";
+  successJson["boxId"] = boxId;
   String successString;
   serializeJson(successJson, successString);
 
@@ -91,6 +73,7 @@ void sendError(String errorMessage, String type) {
   errorJson["type"] = type;
   errorJson["data"] = errorMessage;
   errorJson["source"] = "box";
+  errorJson["boxId"] = boxId;
 
   serializeJson(errorJson, errorString);
   sendMessage(errorString);
@@ -105,6 +88,7 @@ void sendError(String errorMessage, String type, JsonDocument& info) {
   errorJson["data"] = errorMessage;
   errorJson["source"] = "box";
   errorJson["info"] = info;
+  errorJson["boxId"] = boxId;
 
   serializeJson(errorJson, errorString);
   sendMessage(errorString);
@@ -195,31 +179,6 @@ void handleScheduleManualToggle() {
 
   return;
 }
-
-// void handleGetDevices() {
-//   JsonDocument devicesJson;
-//   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
-
-//   for (auto& [id, device] : devices) {
-//     JsonDocument deviceJson;
-//     ShellyPlug deviceShelly = device.getShellyInfo();
-//     deviceJson["name"] = device.name;
-//     deviceJson["id"] = id;
-//     deviceJson["state"] = deviceShelly.state;
-//     deviceJson["isOnline"] = deviceShelly.hasInit;
-//     deviceJson["schedule"] = device.schedule;
-//     deviceJson["button"] = device.button;
-//     devicesStateArray.add(deviceJson);
-//   }
-
-//   JsonDocument devicesStateResponseJson;
-//   devicesStateResponseJson["data"] = devicesStateArray;
-//   devicesStateResponseJson["type"] = getDevicesInfoType;
-
-//   sendSuccess(devicesStateResponseJson);
-
-//   return;
-// }
 
 void handleGetDevices() {
   JsonDocument devicesJson;
@@ -342,9 +301,10 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
 
 void ServerTaskCode2(void* pvParameters) {
   Serial.println("Connecting to websocket server");
-  // for prod: webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
+  // for prod:
+  webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
   // for local :
-  webSocket.begin("192.168.1.18", 5173, "/websocket");
+  //webSocket.begin("192.168.1.18", 3000, "/websocket");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
 

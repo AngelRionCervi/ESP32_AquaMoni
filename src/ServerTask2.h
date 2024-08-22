@@ -9,8 +9,6 @@
 #include "secrets.h"
 #include "utils.h"
 
-void checkForMessage();
-
 void sendMessage(String message);
 
 void sendSuccess(JsonDocument& successJson);
