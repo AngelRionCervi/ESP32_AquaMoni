@@ -49,6 +49,8 @@ void takeMeasurements(PhMeasure& phMeasure, TempMeasure& tempMeasure) {
 
   // Serial.println("temp: " + String(temp));
   // Serial.println("ph: " + String(ph));
+
+  writeToSd(ph, temp);
 }
 
 void writeToSd(float ph, float temp) {

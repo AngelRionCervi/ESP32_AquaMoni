@@ -10,8 +10,11 @@ String getConfigType = "box_get_config";
 String getScheduleStateType = "box_get_schedule_state";
 String pingType = "box_ping";
 String restartType = "box_restart";
-String fetchLastType = "box_fetch_last";
-String fetchHistoricalType = "box_fetch_historical";
+String monitoringGetLastType = "box_monitoring_get_last";
+String monitoringGetHistoricalType = "box_monitoring_get_historical";
+String startHistoricalType = "box_start_historical";
+String endHistoricalType = "box_end_historical";
+String historicalDataStreamType = "box_hds";
 
 void messageToMethods(String message) {
   JsonDocument messageJson;
@@ -40,10 +43,10 @@ void messageToMethods(String message) {
     handlePing();
   } else if (type == restartType) {
     handleRestart();
-  } else if (type == fetchLastType) {
-    handleLast();
-  } else if (type == fetchHistoricalType) {
-    handleHistorical(dataJson);
+  } else if (type == monitoringGetLastType) {
+    handleMonitoringGetLast();
+  } else if (type == monitoringGetHistoricalType) {
+    handleMonitoringGetHistorical(dataJson);
   } else {
     sendError("Unknown call type: ", type);
   }
@@ -302,20 +305,26 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
 void ServerTaskCode2(void* pvParameters) {
   Serial.println("Connecting to websocket server");
   // for prod:
-  webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
+  // webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
   // for local :
-  //webSocket.begin("192.168.1.18", 3000, "/websocket");
+  webSocket.begin("192.168.1.18", 3000, "/websocket");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
 
   for (;;) {
     webSocket.loop();
+    int millisNow = millis();
+    if (millisNow - sendLastMeasurementsMillis >
+        sendLastMeasurementsUpdatePeriode) {
+      handleMonitoringGetLast();
+      sendLastMeasurementsMillis = millisNow;
+    }
     delay(2);
   }
 }
 
-void handleLast() {
-  String type = fetchLastType;
+void handleMonitoringGetLast() {
+  String type = monitoringGetLastType;
 
   File fileLast = SD.open(FILE_LAST, "r");
 
@@ -343,22 +352,22 @@ void handleLast() {
   fileLast.close();
 }
 
-void handleHistorical(String argValue) {
-  String type = fetchHistoricalType;
+void handleMonitoringGetHistorical(String totalDays) {
+  String type = monitoringGetHistoricalType;
 
   int daysLength;
 
-  String* days = splitString(argValue, ',', daysLength);
+  String* days = splitString(totalDays, ',', daysLength);
 
   if (daysLength > 62) {
-    String errorMessage = "Too many days requested [handleHistorical]";
+    String errorMessage = "Too many days requested [handleMonitoringGetHistorical]";
     Serial.println(errorMessage);
     sendError(errorMessage, type);
 
     return;
   }
 
-  sendMessage("start_historical");
+  sendMessage(startHistoricalType);
 
   for (int i = 0; i < daysLength; i++) {
     String fileName = "/historical/";
@@ -376,7 +385,7 @@ void handleHistorical(String argValue) {
       Serial.println(errorMsg);
       dayFile.close();
     } else {
-      String content = "";
+      String content = historicalDataStreamType + "_";
 
       while (dayFile.available()) {
         content += dayFile.readString();
@@ -388,7 +397,7 @@ void handleHistorical(String argValue) {
     }
   }
 
-  sendMessage("end_historical");
+  sendMessage(endHistoricalType);
 
   delete[] days;
 

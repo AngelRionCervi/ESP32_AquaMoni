@@ -41,8 +41,8 @@ void handleRestart();
 
 void ServerTaskCode2(void* pvParameters);
 
-void handleLast();
+void handleMonitoringGetLast();
 
-void handleHistorical(String argValue);
+void handleMonitoringGetHistorical(String argValue);
 
 JsonDocument deserializePost(String body);

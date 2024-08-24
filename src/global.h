@@ -39,6 +39,8 @@ extern int measurementsUpdatePeriode;
 extern int measurementsUpdateLastMillis;
 extern int scheduleOnPeriode;
 extern int scheduleOnLastMillis;
+extern int sendLastMeasurementsUpdatePeriode;
+extern int sendLastMeasurementsMillis;
 extern String boxId;
 
 #endif

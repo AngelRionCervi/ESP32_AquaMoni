@@ -12,12 +12,14 @@ WebSocketsClient webSocket;
 
 int scheduleUpdatePeriode = 3000;
 int devicesStatesUpdatePeriode = 3000; 
-int measurementsUpdatePeriode = 5000; //10*60*1000
+int measurementsUpdatePeriode = 10*60*1000; // every 10 mins
+int sendLastMeasurementsUpdatePeriode = 10000;
 int scheduleOnPeriode = 1000;
 int scheduleUpdateLastMillis = 0;
 int devicesStatesUpdateLastMillis = 0;
 int measurementsUpdateLastMillis = 0;
 int scheduleOnLastMillis = 0;
+int sendLastMeasurementsMillis = 0;
 
 String wifiSSID;
 String wifiPass;
