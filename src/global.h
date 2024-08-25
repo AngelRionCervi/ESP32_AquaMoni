@@ -19,6 +19,7 @@ extern bool sensorError;
 extern bool areSchedulesDisabled;
 extern std::map<int, int> buttonMap;
 extern std::map<int, int> ledMap;
+extern std::map<String, float> monitoringLiveMap;
 extern std::unordered_map<std::string, Device> devices;
 extern WiFiClient wifiClient;
 extern WebServer server;
@@ -41,6 +42,10 @@ extern int scheduleOnPeriode;
 extern int scheduleOnLastMillis;
 extern int sendLastMeasurementsUpdatePeriode;
 extern int sendLastMeasurementsMillis;
+extern int updateLiveMeasurementsPeriode;
+extern int liveMeasurementsLastMillis;
+extern int sendLiveMeasurementsUpdatePeriode;
+extern int sendLiveMeasurementsLastMillis;
 extern String boxId;
 
 #endif

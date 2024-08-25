@@ -12,6 +12,7 @@ String pingType = "box_ping";
 String restartType = "box_restart";
 String monitoringGetLastType = "box_monitoring_get_last";
 String monitoringGetHistoricalType = "box_monitoring_get_historical";
+String monitoringGetLiveType = "box_monitoring_get_live";
 String startHistoricalType = "box_start_historical";
 String endHistoricalType = "box_end_historical";
 String historicalDataStreamType = "box_hds";
@@ -44,7 +45,7 @@ void messageToMethods(String message) {
   } else if (type == restartType) {
     handleRestart();
   } else if (type == monitoringGetLastType) {
-    handleMonitoringGetLast();
+    handleMonitoringGetLastHistoricalUpdate();
   } else if (type == monitoringGetHistoricalType) {
     handleMonitoringGetHistorical(dataJson);
   } else {
@@ -106,16 +107,9 @@ void sendHandShake() {
 }
 
 void sendInitBox() {
-  // JsonDocument initBoxJson;
-
   handleGetConfig();
   handleGetDevices();
   handleGetScheduleState();
-
-  // initBoxJson["data"] = "1234";  // box config + devices states
-  // initBoxJson["type"] = initType;
-
-  // sendSuccess(initBoxJson);
 }
 
 void handleUpdateConfig(JsonVariant newConfigJson) {
@@ -316,14 +310,35 @@ void ServerTaskCode2(void* pvParameters) {
     int millisNow = millis();
     if (millisNow - sendLastMeasurementsMillis >
         sendLastMeasurementsUpdatePeriode) {
-      handleMonitoringGetLast();
+      handleMonitoringGetLastHistoricalUpdate();
       sendLastMeasurementsMillis = millisNow;
     }
+
+    if (millisNow - sendLiveMeasurementsLastMillis >
+        sendLiveMeasurementsUpdatePeriode) {
+      handleMonitoringGetLive();
+      sendLiveMeasurementsLastMillis = millisNow;
+    }
+
     delay(2);
   }
 }
 
-void handleMonitoringGetLast() {
+void handleMonitoringGetLive() {
+  String type = monitoringGetLiveType;
+
+  JsonDocument liveJson;
+  liveJson["ph"] = monitoringLiveMap["ph"];
+  liveJson["temp"] = monitoringLiveMap["temp"];
+
+  JsonDocument liveJsonResponse;
+  liveJsonResponse["data"] = liveJson;
+  liveJsonResponse["type"] = type;
+
+  sendSuccess(liveJsonResponse);
+}
+
+void handleMonitoringGetLastHistoricalUpdate() {
   String type = monitoringGetLastType;
 
   File fileLast = SD.open(FILE_LAST, "r");
@@ -360,7 +375,8 @@ void handleMonitoringGetHistorical(String totalDays) {
   String* days = splitString(totalDays, ',', daysLength);
 
   if (daysLength > 62) {
-    String errorMessage = "Too many days requested [handleMonitoringGetHistorical]";
+    String errorMessage =
+        "Too many days requested [handleMonitoringGetHistorical]";
     Serial.println(errorMessage);
     sendError(errorMessage, type);
 

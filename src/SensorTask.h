@@ -11,7 +11,7 @@
 
 void SensorTaskCode(void* pvParameters);
 
-void takeMeasurements(PhMeasure& phMeasure, TempMeasure& tempMeasure);
+void takeMeasurements(PhMeasure& phMeasure, TempMeasure& tempMeasure, bool saveToSd);
 
 void writeToSd(float ph, float temp);
 

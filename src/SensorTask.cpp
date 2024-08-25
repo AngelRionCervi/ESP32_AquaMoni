@@ -13,8 +13,14 @@ void SensorTaskCode(void* pvParameters) {
     if ((millisNow - measurementsUpdateLastMillis >
          measurementsUpdatePeriode) &&
         enableMonitoring) {
-      takeMeasurements(phMeasure, tempMeasure);
+      takeMeasurements(phMeasure, tempMeasure, true);
       measurementsUpdateLastMillis = millisNow;
+    }
+
+    if (millisNow - liveMeasurementsLastMillis >
+        updateLiveMeasurementsPeriode) {
+      takeMeasurements(phMeasure, tempMeasure, false);
+      liveMeasurementsLastMillis = millisNow;
     }
 
     if (millisNow - devicesStatesUpdateLastMillis >
@@ -32,7 +38,9 @@ void SensorTaskCode(void* pvParameters) {
   }
 }
 
-void takeMeasurements(PhMeasure& phMeasure, TempMeasure& tempMeasure) {
+void takeMeasurements(PhMeasure& phMeasure,
+                      TempMeasure& tempMeasure,
+                      bool saveToSd) {
   float phValue = phMeasure.mesurePh();
   float tempValue = tempMeasure.measureWaterTemp();
 
@@ -47,10 +55,15 @@ void takeMeasurements(PhMeasure& phMeasure, TempMeasure& tempMeasure) {
   float ph = decimalRound(phValue, 2);
   float temp = decimalRound(tempValue, 2);
 
+  monitoringLiveMap["ph"] = ph;
+  monitoringLiveMap["temp"] = temp;
+
   // Serial.println("temp: " + String(temp));
   // Serial.println("ph: " + String(ph));
 
-  writeToSd(ph, temp);
+  if (saveToSd) {
+    writeToSd(ph, temp);
+  }
 }
 
 void writeToSd(float ph, float temp) {

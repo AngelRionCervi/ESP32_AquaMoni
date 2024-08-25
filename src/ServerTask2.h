@@ -41,7 +41,9 @@ void handleRestart();
 
 void ServerTaskCode2(void* pvParameters);
 
-void handleMonitoringGetLast();
+void handleMonitoringGetLastHistoricalUpdate();
+
+void handleMonitoringGetLive();
 
 void handleMonitoringGetHistorical(String argValue);
 
