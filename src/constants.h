@@ -7,17 +7,10 @@
 #define FILE_LAST "/last.jso"
 #define FILE_CONFIG "/config.jso"
 
-#define RELAY_FILTER_NAME "filter"
-#define RELAY_FILTER_IP "192.168.1.16"
-
-#define RELAY_SKIMMER_NAME "skimmer"
-#define RELAY_SKIMMER_IP "192.168.1.13"
-
-#define RELAY_CO2_NAME "co2"
-#define RELAY_CO2_IP "192.168.1.15"
-
-#define RELAY_LIGHT_NAME "light"
-#define RELAY_LIGHT_IP "192.168.1.14"
+#define BLUETOOTH_NAME "Aqua Pal"
+#define BLUETOOTH_SETUP_SSID_CMD "aquapal-setup-ssid:"
+#define BLUETOOTH_SETUP_WIFIPASS_CMD "aquapal-setup-wifipass:"
+#define BLUETOOTH_SETUP_VALIDATE_CMD "aquapal-setup-validate"
 
 #define BUTTON_0_PIN 32
 #define BUTTON_1_PIN 27

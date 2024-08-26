@@ -5,13 +5,14 @@
 #include <SD.h>
 #include <SPI.h>
 #include <WebServer.h>
+#include <WebSocketsClient.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-#include <WebSocketsClient.h>
 
 #include <map>
 #include <unordered_map>
 
+#include "BtSetup.h"
 #include "Device.h"
 #include "SensorTask.h"
 #include "ServerTask2.h"
@@ -19,12 +20,16 @@
 #include "global.h"
 #include "secrets.h"
 
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
+#endif
+
 TaskHandle_t SensorTask;
 TaskHandle_t ServerTask;
 
 void setupWifi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin("LA6EC", "getRektm8");
+  WiFi.begin(wifiSSID, wifiPass);
   Serial.print("WiFi Connecting...");
   while (WiFi.status() != WL_CONNECTED) {
     activityLed.update();
@@ -129,11 +134,13 @@ void setup(void) {
     delay(50);
   };
 
-  sessionId = "hola";  // getRandomString(16);
-
   setupSD();
   JsonDocument config = getConfig();
   loadConfig(config);
+  if (wifiSSID == "" || !wifiSSID) {
+    bt_begin();
+    return;
+  }
   setupWifi();
   setupDateTime();
 
@@ -143,6 +150,8 @@ void setup(void) {
   scheduleButton.setState(true);
 
   activityLed.setState("ok");
+
+  SerialBT.begin("ESP32test");
 
   Serial.println("Starting tasks...");
   xTaskCreatePinnedToCore(
@@ -166,4 +175,8 @@ void setup(void) {
 
 void loop(void) {
   delay(2);  // allow the cpu to switch to other tasks
+
+  if (isInBtSetup) {
+    bt_readSerial();
+  }
 }

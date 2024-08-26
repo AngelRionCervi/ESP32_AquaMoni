@@ -3,11 +3,11 @@
 #include <WebSocketsClient.h>
 #include <map>
 #include <unordered_map>
+#include <BluetoothSerial.h>
 
 #include "Device.h"
 #include "ScheduleButton.h"
 #include "ActivityLed.h"
-
 
 #ifndef MY_GLOBALS_H
 #define MY_GLOBALS_H
@@ -17,6 +17,7 @@
 // either directly or indirectly.
 extern bool sensorError;
 extern bool areSchedulesDisabled;
+extern bool isInBtSetup;
 extern std::map<int, int> buttonMap;
 extern std::map<int, int> ledMap;
 extern std::map<String, float> monitoringLiveMap;
@@ -24,10 +25,10 @@ extern std::unordered_map<std::string, Device> devices;
 extern WiFiClient wifiClient;
 extern WebServer server;
 extern WebSocketsClient webSocket;
+extern BluetoothSerial SerialBT;
 extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
-extern String sessionId;
 extern int autoSchedulesOnAfter;
 extern bool enableMonitoring;
 extern ScheduleButton scheduleButton;

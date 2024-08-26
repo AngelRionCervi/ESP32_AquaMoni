@@ -4,11 +4,13 @@
 
 bool sensorError = false;
 bool areSchedulesDisabled = false;
+bool isInBtSetup = false;
 std::unordered_map<std::string, Device> devices;
 
 WiFiClient wifiClient;
 WebServer server(80);
 WebSocketsClient webSocket;
+BluetoothSerial SerialBT;
 
 int scheduleUpdatePeriode = 3000;
 int devicesStatesUpdatePeriode = 3000;
@@ -28,7 +30,6 @@ int sendLastMeasurementsMillis = 0;
 String wifiSSID;
 String wifiPass;
 String serverPass;
-String sessionId;
 String boxId;
 int autoSchedulesOnAfter;
 bool enableMonitoring;
