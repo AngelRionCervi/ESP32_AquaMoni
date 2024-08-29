@@ -5,12 +5,12 @@
 bool sensorError = false;
 bool areSchedulesDisabled = false;
 bool isInBtSetup = false;
+bool btDeviceConnected = false;
 std::unordered_map<std::string, Device> devices;
 
 WiFiClient wifiClient;
 WebServer server(80);
 WebSocketsClient webSocket;
-BluetoothSerial SerialBT;
 
 int scheduleUpdatePeriode = 3000;
 int devicesStatesUpdatePeriode = 3000;

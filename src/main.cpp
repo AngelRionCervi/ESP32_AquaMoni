@@ -26,6 +26,7 @@
 
 TaskHandle_t SensorTask;
 TaskHandle_t ServerTask;
+TaskHandle_t BLETask;
 
 void setupWifi() {
   WiFi.mode(WIFI_STA);
@@ -137,10 +138,24 @@ void setup(void) {
   setupSD();
   JsonDocument config = getConfig();
   loadConfig(config);
-  if (wifiSSID == "" || !wifiSSID) {
+  // if (wifiSSID == "" || !wifiSSID) {
+  //   bt_begin();
+  //   return;
+  // }
+  if (true) {
     bt_begin();
+    // xTaskCreatePinnedToCore(
+    //     bt_begin,  /* Task function. */
+    //     "BLETask", /* name of task. */
+    //     100000,     /* Stack size of task */
+    //     NULL,      /* parameter of the task */
+    //     0,         /* priority of the task */
+    //     &BLETask,  /* Task handle to keep track of created task */
+    //     1);
+
     return;
   }
+
   setupWifi();
   setupDateTime();
 
@@ -151,32 +166,30 @@ void setup(void) {
 
   activityLed.setState("ok");
 
-  SerialBT.begin("ESP32test");
-
   Serial.println("Starting tasks...");
-  xTaskCreatePinnedToCore(
-      ServerTaskCode2, /* Task function. */
-      "ServerTask",    /* name of task. */
-      10000,           /* Stack size of task */
-      NULL,            /* parameter of the task */
-      1,               /* priority of the task */
-      &ServerTask,     /* Task handle to keep track of created task */
-      0);              /* pin task to core 0 */
+  // xTaskCreatePinnedToCore(
+  //     ServerTaskCode2, /* Task function. */
+  //     "ServerTask",    /* name of task. */
+  //     10000,           /* Stack size of task */
+  //     NULL,            /* parameter of the task */
+  //     1,               /* priority of the task */
+  //     &ServerTask,     /* Task handle to keep track of created task */
+  //     0);              /* pin task to core 0 */
 
-  xTaskCreatePinnedToCore(
-      SensorTaskCode, /* Task function. */
-      "SensorTask",   /* name of task. */
-      10000,          /* Stack size of task */
-      NULL,           /* parameter of the task */
-      1,              /* priority of the task */
-      &SensorTask,    /* Task handle to keep track of created task */
-      1);             /* pin task to core 1 */
+  // xTaskCreatePinnedToCore(
+  //     SensorTaskCode, /* Task function. */
+  //     "SensorTask",   /* name of task. */
+  //     10000,          /* Stack size of task */
+  //     NULL,           /* parameter of the task */
+  //     1,              /* priority of the task */
+  //     &SensorTask,    /* Task handle to keep track of created task */
+  //     1);             /* pin task to core 1 */
 }
 
 void loop(void) {
-  delay(2);  // allow the cpu to switch to other tasks
+  delay(20);  // allow the cpu to switch to other tasks
 
-  if (isInBtSetup) {
-    bt_readSerial();
-  }
+  // if (isInBtSetup) {
+  //   bt_readSerial();
+  // }
 }

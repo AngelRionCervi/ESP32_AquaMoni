@@ -3,7 +3,6 @@
 #include <WebSocketsClient.h>
 #include <map>
 #include <unordered_map>
-#include <BluetoothSerial.h>
 
 #include "Device.h"
 #include "ScheduleButton.h"
@@ -18,6 +17,7 @@
 extern bool sensorError;
 extern bool areSchedulesDisabled;
 extern bool isInBtSetup;
+extern bool btDeviceConnected;
 extern std::map<int, int> buttonMap;
 extern std::map<int, int> ledMap;
 extern std::map<String, float> monitoringLiveMap;
@@ -25,7 +25,6 @@ extern std::unordered_map<std::string, Device> devices;
 extern WiFiClient wifiClient;
 extern WebServer server;
 extern WebSocketsClient webSocket;
-extern BluetoothSerial SerialBT;
 extern String wifiSSID;
 extern String wifiPass;
 extern String serverPass;
