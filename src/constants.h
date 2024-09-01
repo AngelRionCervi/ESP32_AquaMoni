@@ -6,11 +6,7 @@
 #define NTP_SERVER_ADDRESS "europe.pool.ntp.org"
 #define FILE_LAST "/last.jso"
 #define FILE_CONFIG "/config.jso"
-
-#define BLUETOOTH_NAME "Aqua Pal"
-#define BLUETOOTH_SETUP_SSID_CMD "aquapal-setup-ssid:"
-#define BLUETOOTH_SETUP_WIFIPASS_CMD "aquapal-setup-wifipass:"
-#define BLUETOOTH_SETUP_VALIDATE_CMD "aquapal-setup-validate"
+#define MAX_WIFI_TRIES 20
 
 #define BUTTON_0_PIN 32
 #define BUTTON_1_PIN 27
@@ -39,7 +35,7 @@
 #define ACTIVITY_LED_GREEN_PIN 0
 #define ACTIVITY_LED_RED_PIN 4
 
-
+#define BT_DEVICE_NAME "Aqua Pal"
 #define BT_SERVICE_UUID "0880619c-4a5f-4420-a3fa-496713d52298"
 
 #define BT_SSID_SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"

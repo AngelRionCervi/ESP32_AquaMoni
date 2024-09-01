@@ -29,12 +29,21 @@ TaskHandle_t ServerTask;
 TaskHandle_t BLETask;
 
 void setupWifi() {
+  int wifiTries = 0;
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifiSSID, wifiPass);
   Serial.print("WiFi Connecting...");
   while (WiFi.status() != WL_CONNECTED) {
     activityLed.update();
-    delay(50);
+    delay(500);
+    wifiTries++;
+    if (wifiTries > MAX_WIFI_TRIES) {
+      Serial.println("Failed to connect to WiFi");
+      activityLed.setState("error");
+      activityLed.update();
+      bt_begin();
+      return;
+    }
   }
   Serial.println();
 }
@@ -62,7 +71,7 @@ void setupSD() {
     Serial.println("SD card initialization failed!");
     activityLed.setState("error");
     activityLed.update();
-    delay(2000);
+    delay(4000);
     setupSD();
   }
 }
@@ -138,21 +147,8 @@ void setup(void) {
   setupSD();
   JsonDocument config = getConfig();
   loadConfig(config);
-  // if (wifiSSID == "" || !wifiSSID) {
-  //   bt_begin();
-  //   return;
-  // }
-  if (true) {
+  if (wifiSSID == "" || !wifiSSID) {
     bt_begin();
-    // xTaskCreatePinnedToCore(
-    //     bt_begin,  /* Task function. */
-    //     "BLETask", /* name of task. */
-    //     100000,     /* Stack size of task */
-    //     NULL,      /* parameter of the task */
-    //     0,         /* priority of the task */
-    //     &BLETask,  /* Task handle to keep track of created task */
-    //     1);
-
     return;
   }
 
@@ -167,29 +163,25 @@ void setup(void) {
   activityLed.setState("ok");
 
   Serial.println("Starting tasks...");
-  // xTaskCreatePinnedToCore(
-  //     ServerTaskCode2, /* Task function. */
-  //     "ServerTask",    /* name of task. */
-  //     10000,           /* Stack size of task */
-  //     NULL,            /* parameter of the task */
-  //     1,               /* priority of the task */
-  //     &ServerTask,     /* Task handle to keep track of created task */
-  //     0);              /* pin task to core 0 */
+  xTaskCreatePinnedToCore(
+      ServerTaskCode2, /* Task function. */
+      "ServerTask",    /* name of task. */
+      10000,           /* Stack size of task */
+      NULL,            /* parameter of the task */
+      1,               /* priority of the task */
+      &ServerTask,     /* Task handle to keep track of created task */
+      0);              /* pin task to core 0 */
 
-  // xTaskCreatePinnedToCore(
-  //     SensorTaskCode, /* Task function. */
-  //     "SensorTask",   /* name of task. */
-  //     10000,          /* Stack size of task */
-  //     NULL,           /* parameter of the task */
-  //     1,              /* priority of the task */
-  //     &SensorTask,    /* Task handle to keep track of created task */
-  //     1);             /* pin task to core 1 */
+  xTaskCreatePinnedToCore(
+      SensorTaskCode, /* Task function. */
+      "SensorTask",   /* name of task. */
+      10000,          /* Stack size of task */
+      NULL,           /* parameter of the task */
+      1,              /* priority of the task */
+      &SensorTask,    /* Task handle to keep track of created task */
+      1);             /* pin task to core 1 */
 }
 
 void loop(void) {
   delay(20);  // allow the cpu to switch to other tasks
-
-  // if (isInBtSetup) {
-  //   bt_readSerial();
-  // }
 }

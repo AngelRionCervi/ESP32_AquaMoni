@@ -11,6 +11,4 @@
 
 void bt_begin();
 
-void bt_readSerial();
-
 bool bt_saveCredToSD();
