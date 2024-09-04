@@ -147,7 +147,13 @@ void setup(void) {
   setupSD();
   JsonDocument config = getConfig();
   loadConfig(config);
-  if (wifiSSID == "" || !wifiSSID) {
+
+  // if (wifiSSID == "" || !wifiSSID) {
+  //   bt_begin();
+  //   return;
+  // }
+
+  if (true) {
     bt_begin();
     return;
   }

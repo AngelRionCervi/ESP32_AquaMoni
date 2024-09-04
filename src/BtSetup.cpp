@@ -44,10 +44,107 @@ class CharacCallbacks : public BLECharacteristicCallbacks {
       }
     }
   }
+
+  void onRead(BLECharacteristic* pCharacteristic) {
+    Serial.println("Characteristic read: " + name);
+  }
 };
+
+String bt_listWifiAccessPoints() {
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  Serial.println("Wifi scan started");
+
+  struct WifiNetwork {
+    String ssid;
+    String encryptionType;
+    int rssi;
+  };
+
+  std::map<int, WifiNetwork> wifiNetworksMap;
+
+  int totalNetworks = WiFi.scanNetworks();
+
+  if (totalNetworks == 0) {
+    Serial.println("No networks found");
+  } else {
+    // Serial.print(totalNetworks);
+    // Serial.println(" networks found");
+    // Serial.println(
+    //     "Nr | SSID                             | RSSI | CH | Encryption");
+    for (int i = 0; i < totalNetworks; ++i) {
+      WifiNetwork wifiNetwork;
+      String encryption;
+      wifiNetwork.ssid = WiFi.SSID(i);
+
+      wifiNetwork.rssi = WiFi.RSSI(i);
+
+      // Print SSID and RSSI for each network found
+      // Serial.printf("%2d", i + 1);
+      // Serial.print(" | ");
+      // Serial.printf("%-32.32s", WiFi.SSID(i).c_str());
+      // Serial.print(" | ");
+      // Serial.printf("%4d", WiFi.RSSI(i));
+      // Serial.print(" | ");
+      // Serial.printf("%2d", WiFi.channel(i));
+      // Serial.print(" | ");
+      switch (WiFi.encryptionType(i)) {
+        case WIFI_AUTH_OPEN:
+          encryption = "open";
+          break;
+        case WIFI_AUTH_WEP:
+          encryption = "WEP";
+          break;
+        case WIFI_AUTH_WPA_PSK:
+          encryption = "WPA";
+          break;
+        case WIFI_AUTH_WPA2_PSK:
+          encryption = "WPA2";
+          break;
+        case WIFI_AUTH_WPA_WPA2_PSK:
+          encryption = "WPA+WPA2";
+          break;
+        case WIFI_AUTH_WPA2_ENTERPRISE:
+          encryption = "WPA2-EAP";
+          break;
+        case WIFI_AUTH_WPA3_PSK:
+          encryption = "WPA3";
+          break;
+        case WIFI_AUTH_WPA2_WPA3_PSK:
+          encryption = "WPA2+WPA3";
+          break;
+        case WIFI_AUTH_WAPI_PSK:
+          encryption = "WAPI";
+          break;
+        default:
+          encryption = "unknown";
+      }
+      wifiNetwork.encryptionType = encryption;
+      wifiNetworksMap.emplace(i, wifiNetwork);
+    }
+  }
+  Serial.println("");
+
+  String wifiNetworksString = "";
+
+  for (auto const& [_, network] : wifiNetworksMap) {
+    wifiNetworksString +=
+        network.ssid + "]" + network.encryptionType + "]" + network.rssi + "/";
+  }
+
+  WiFi.scanDelete();
+
+  return wifiNetworksString;
+}
 
 void bt_begin() {
   Serial.println("Entering bluetooth setup");
+
+  String wifiNetworksString = bt_listWifiAccessPoints();
+  Serial.println(wifiNetworksString);
+
   BLEDevice::init(BT_DEVICE_NAME);
   BLEServer* pServer = BLEDevice::createServer();
 
@@ -56,11 +153,13 @@ void bt_begin() {
 
   BLEDescriptor btSSIDDescriptor(BT_SSID_DESCRIPTOR_UUID);
   BLEDescriptor btWifiPassDescriptor(BT_WIFIPASS_DESCRIPTOR_UUID);
+  BLEDescriptor btWifiListDescriptor(BT_WIFI_LIST_DESCRIPTOR_UUID);
   BLEDescriptor btConfigDoneDescriptor(BT_CONFIG_DONE_DESCRIPTOR_UUID);
 
-  btSSIDDescriptor.setValue("network_ssid");
-  btWifiPassDescriptor.setValue("network_password");
-  btConfigDoneDescriptor.setValue("config_done");
+  btSSIDDescriptor.setValue(BT_SSID_CHARACTERISTIC_NAME);
+  btWifiPassDescriptor.setValue(BT_WIFIPASS_CHARACTERISTIC_NAME);
+  btWifiListDescriptor.setValue(BT_WIFI_LIST_CHARACTERISTIC_NAME);
+  btConfigDoneDescriptor.setValue(BT_CONFIG_DONE_CHARACTERISTIC_NAME);
 
   BLECharacteristic btSSIDCharacteristic(
       BT_SSID_CHARACTERISTIC_UUID,
@@ -68,6 +167,8 @@ void bt_begin() {
   BLECharacteristic btWifiPassCharacteristic(
       BT_WIFIPASS_CHARACTERISTIC_UUID,
       BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
+  BLECharacteristic btWifiListCharacteristic(BT_WIFI_LIST_CHARACTERISTIC_UUID,
+                                             BLECharacteristic::PROPERTY_READ);
   BLECharacteristic btConfigDoneCharacteristic(
       BT_CONFIG_DONE_CHARACTERISTIC_UUID,
       BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE);
@@ -79,6 +180,10 @@ void bt_begin() {
   pService->addCharacteristic(&btWifiPassCharacteristic);
   btWifiPassCharacteristic.addDescriptor(&btWifiPassDescriptor);
   btWifiPassCharacteristic.setValue("");
+
+  pService->addCharacteristic(&btWifiListCharacteristic);
+  btWifiListCharacteristic.addDescriptor(&btWifiListDescriptor);
+  btWifiListCharacteristic.setValue(wifiNetworksString.c_str());
 
   pService->addCharacteristic(&btConfigDoneCharacteristic);
   btConfigDoneCharacteristic.addDescriptor(&btConfigDoneDescriptor);
@@ -97,6 +202,8 @@ void bt_begin() {
       new CharacCallbacks(BT_SSID_CHARACTERISTIC_NAME));
   btWifiPassCharacteristic.setCallbacks(
       new CharacCallbacks(BT_WIFIPASS_CHARACTERISTIC_NAME));
+  btWifiListCharacteristic.setCallbacks(
+      new CharacCallbacks(BT_WIFI_LIST_CHARACTERISTIC_NAME));
   btConfigDoneCharacteristic.setCallbacks(
       new CharacCallbacks(BT_CONFIG_DONE_CHARACTERISTIC_NAME));
 
@@ -105,7 +212,9 @@ void bt_begin() {
   isInBtSetup = true;
 
   for (;;) {
-    yield();
+    String newWifiNetworksString = bt_listWifiAccessPoints();
+    btWifiListCharacteristic.setValue(newWifiNetworksString.c_str());
+    delay(BT_WIFI_SCAN_REFRESH_PERIOD);
   }
 }
 
