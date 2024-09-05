@@ -127,12 +127,19 @@ String bt_listWifiAccessPoints() {
   }
   Serial.println("");
 
-  String wifiNetworksString = "";
+  String wifiNetworksString;
+  JsonDocument wifiNetworksJson;
+  JsonArray wifiNetworksJsonArray = wifiNetworksJson.to<JsonArray>();
 
   for (auto const& [_, network] : wifiNetworksMap) {
-    wifiNetworksString +=
-        network.ssid + "]" + network.encryptionType + "]" + network.rssi + "/";
+    JsonDocument wifiNetworkJson;
+    wifiNetworkJson["ssid"] = network.ssid;
+    wifiNetworkJson["encryptionType"] = network.encryptionType;
+    wifiNetworkJson["rssi"] = network.rssi;
+    wifiNetworksJsonArray.add(wifiNetworkJson);
   }
+
+  serializeJson(wifiNetworksJsonArray, wifiNetworksString);
 
   WiFi.scanDelete();
 
