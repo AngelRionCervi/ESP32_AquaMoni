@@ -14,3 +14,5 @@ void bt_begin();
 String bt_listWifiAccessPoints();
 
 bool bt_saveCredToSD();
+
+bool bt_testWifi(String ssid, String pass);

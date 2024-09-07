@@ -303,7 +303,7 @@ void ServerTaskCode2(void* pvParameters) {
   // for local :
   webSocket.beginSSL("192.168.1.17", 3000, "/websocket");
   webSocket.onEvent(webSocketEvent);
-  webSocket.setReconnectInterval(5000);
+  webSocket.setReconnectInterval(WEBSOCKET_RECONNECT_INTERVAL);
 
   for (;;) {
     webSocket.loop();
