@@ -60,6 +60,7 @@ String bt_listWifiAccessPoints() {
   struct WifiNetwork {
     String ssid;
     String encryptionType;
+    int channel;
     int rssi;
   };
 
@@ -78,7 +79,7 @@ String bt_listWifiAccessPoints() {
       WifiNetwork wifiNetwork;
       String encryption;
       wifiNetwork.ssid = WiFi.SSID(i);
-
+      wifiNetwork.channel = WiFi.channel(i);
       wifiNetwork.rssi = WiFi.RSSI(i);
 
       // Print SSID and RSSI for each network found
@@ -136,6 +137,7 @@ String bt_listWifiAccessPoints() {
     wifiNetworkJson["ssid"] = network.ssid;
     wifiNetworkJson["encryptionType"] = network.encryptionType;
     wifiNetworkJson["rssi"] = network.rssi;
+    wifiNetworkJson["channel"] = network.channel;
     wifiNetworksJsonArray.add(wifiNetworkJson);
   }
 
