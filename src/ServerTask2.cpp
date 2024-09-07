@@ -301,7 +301,7 @@ void ServerTaskCode2(void* pvParameters) {
   // for prod:
   // webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
   // for local :
-  webSocket.beginSSL("192.168.1.18", 3000, "/websocket");
+  webSocket.beginSSL("192.168.1.17", 3000, "/websocket");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
 

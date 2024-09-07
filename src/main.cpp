@@ -148,15 +148,15 @@ void setup(void) {
   JsonDocument config = getConfig();
   loadConfig(config);
 
-  // if (wifiSSID == "" || !wifiSSID) {
-  //   bt_begin();
-  //   return;
-  // }
-
-  if (true) {
+  if (wifiSSID == "" || !wifiSSID) {
     bt_begin();
     return;
   }
+
+  // if (true) {
+  //   bt_begin();
+  //   return;
+  // }
 
   setupWifi();
   setupDateTime();
