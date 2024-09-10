@@ -199,6 +199,11 @@ String bt_listWifiAccessPoints() {
     if (network.rssi < minRSSI && wifiNetworksJsonArray.size() >= maxLength) {
       continue;
     }
+    for (int i = 0; i < wifiNetworksJsonArray.size(); i++) {
+      if (wifiNetworksJsonArray[i]["ssid"] == network.ssid) {
+        continue;
+      }
+    }
     JsonDocument wifiNetworkJson;
     wifiNetworkJson["ssid"] = network.ssid;
     wifiNetworkJson["encryptionType"] = network.encryptionType;
