@@ -199,10 +199,15 @@ String bt_listWifiAccessPoints() {
     if (network.rssi < minRSSI && wifiNetworksJsonArray.size() >= maxLength) {
       continue;
     }
+    bool alreadyExists = false;
     for (int i = 0; i < wifiNetworksJsonArray.size(); i++) {
-      if (wifiNetworksJsonArray[i]["ssid"] == network.ssid) {
-        continue;
+      if (wifiNetworksJsonArray[i]["ssid"].as<String>() == network.ssid) {
+        alreadyExists = true;
+        break;
       }
+    }
+    if (alreadyExists) {
+      continue;
     }
     JsonDocument wifiNetworkJson;
     wifiNetworkJson["ssid"] = network.ssid;
