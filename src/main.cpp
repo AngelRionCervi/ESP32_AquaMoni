@@ -14,11 +14,10 @@
 
 #include "BtSetup.h"
 #include "Device.h"
-#include "SensorTask.h"
 #include "ServerTask2.h"
+#include "SensorTask.h"
 #include "constants.h"
 #include "global.h"
-#include "secrets.h"
 
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
@@ -122,12 +121,13 @@ void setupDevices(JsonDocument& configJson) {
     const char* name = deviceObj["name"].as<const char*>();
     const char* ip = deviceObj["ip"].as<const char*>();
     const char* id = deviceObj["id"].as<const char*>();
+    const char* plugType = deviceObj["plugType"].as<const char*>();
     unsigned int button = deviceObj["button"].as<unsigned int>();
     JsonVariant schedule = deviceObj["schedule"].as<JsonVariant>();
 
     JsonDocument scheduleCopy = schedule;
 
-    Device newDevice(ip, name, id, ledMap[button], buttonMap[button], button,
+    Device newDevice(ip, name, plugType, id, ledMap[button], buttonMap[button], button,
                      scheduleCopy, wifiClient);
     devices.emplace(id, newDevice);
     activityLed.update();
@@ -189,5 +189,5 @@ void setup(void) {
 }
 
 void loop(void) {
-  delay(20);  // allow the cpu to switch to other tasks
+  delay(2);  // allow the cpu to switch to other tasks
 }

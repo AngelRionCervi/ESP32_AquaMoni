@@ -6,7 +6,6 @@
 #include "Device.h"
 #include "constants.h"
 #include "global.h"
-#include "secrets.h"
 #include "utils.h"
 
 void sendMessage(String message);

@@ -1,23 +1,24 @@
 #pragma once
 #include <ADebouncer.h>
-
-#include "ShellyPlug.h"
+#include "SmartPlug.h"
 
 class Device {
  public:
-  ShellyPlug shelly;
+  SmartPlug smartPlug;
   ADebouncer debouncer;
   int ledPin;
   int buttonPin;
   unsigned int button;
   String name;
   String id;
+  String plugType;
   JsonDocument schedule;
-  bool shellyState;
+  bool smartPlugState;
 
  public:
   Device(const char* _address,
          const char* _name,
+         const char* _plugType,
          const char* _id,
          int _ledPin,
          int _buttonPin,
@@ -25,10 +26,10 @@ class Device {
          JsonDocument schedule,
          WiFiClient _wifiClient,
          int _port = 80);
-  ShellyPlug getShellyInfo();
-  bool fetchShellyState();
-  void setShellyState(bool _state);
-  void toggleShellyState();
+  SmartPlug getSmartPlugInfo();
+  bool fetchSmartPlugState();
+  void setSmartPlugState(bool _state);
+  void toggleSmartPlugState();
   void checkButton();
   void checkSchedule();
   void updateLed();

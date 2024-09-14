@@ -1,8 +1,9 @@
-#include <ESPDateTime.h>
 #include "Device.h"
+#include <ESPDateTime.h>
 
 Device::Device(const char* _address,
                const char* _name,
+               const char* _plugType,
                const char* _id,
                int _ledPin,
                int _buttonPin,
@@ -16,6 +17,7 @@ Device::Device(const char* _address,
   buttonPin = _buttonPin;
   schedule = _schedule;
   button = _button;
+  plugType = _plugType;
 
   // pinMode(_buttonPin, INPUT_PULLUP);
   // pinMode(_ledPin, OUTPUT);
@@ -23,25 +25,25 @@ Device::Device(const char* _address,
   debouncer = ADebouncer();
   debouncer.mode(DELAYED, 10, LOW);
 
-  shelly = ShellyPlug();
-  bool initState = shelly.init(_address, _port, _wifiClient, name);
-  shellyState = initState;
-  //digitalWrite(ledPin, shellyState);
+  smartPlug = SmartPlug();
+  bool initState = smartPlug.init(_address, _port, _wifiClient, _name, _plugType);
+  smartPlugState = initState;
+  // digitalWrite(ledPin, smartPlugState);
 }
 
-ShellyPlug Device::getShellyInfo() {
-  return shelly;
+SmartPlug Device::getSmartPlugInfo() {
+  return smartPlug;
 }
 
-void Device::setShellyState(bool state) {
-  shellyState = state;
-  shelly.setState(state);
+void Device::setSmartPlugState(bool state) {
+  smartPlugState = state;
+  smartPlug.setState(state);
   this->updateLed();
 }
 
-void Device::toggleShellyState() {
-  shellyState = !shellyState;
-  shelly.setState(shellyState);
+void Device::toggleSmartPlugState() {
+  smartPlugState = !smartPlugState;
+  smartPlug.setState(smartPlugState);
   this->updateLed();
 }
 
@@ -50,14 +52,14 @@ void Device::checkButton() {
   if (debouncer.falling()) {
     Serial.print("toggle: ");
     Serial.println(name);
-    shellyState = !shellyState;
-    shelly.setState(shellyState);
+    smartPlugState = !smartPlugState;
+    smartPlug.setState(smartPlugState);
     this->updateLed();
   }
 }
 
 void Device::updateLed() {
-  if (shellyState) {
+  if (smartPlugState) {
     digitalWrite(ledPin, HIGH);
   } else {
     digitalWrite(ledPin, LOW);
@@ -67,7 +69,7 @@ void Device::updateLed() {
 void Device::checkSchedule() {
   if (schedule.is<bool>()) {
     bool scheduleAsBool = schedule.as<bool>();
-    shelly.setState(scheduleAsBool);
+    smartPlug.setState(scheduleAsBool);
   } else if (schedule.is<JsonArray>()) {
     JsonArrayConst scheduleAsArray = schedule.as<JsonArrayConst>();
 
@@ -80,12 +82,12 @@ void Device::checkSchedule() {
 
     unsigned int fullDayMinutes = (hours * 60) + minutes;
 
-    shelly.setState(fullDayMinutes >= start && fullDayMinutes <= end);
+    smartPlug.setState(fullDayMinutes >= start && fullDayMinutes <= end);
   }
 }
 
-bool Device::fetchShellyState() {
-  shellyState = shelly.fetchState();
+bool Device::fetchSmartPlugState() {
+  smartPlugState = smartPlug.fetchState();
   this->updateLed();
-  return shellyState;
+  return smartPlugState;
 }

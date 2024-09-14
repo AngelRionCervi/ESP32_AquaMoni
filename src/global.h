@@ -4,9 +4,9 @@
 #include <map>
 #include <unordered_map>
 
+#include "ActivityLed.h"
 #include "Device.h"
 #include "ScheduleButton.h"
-#include "ActivityLed.h"
 
 #ifndef MY_GLOBALS_H
 #define MY_GLOBALS_H

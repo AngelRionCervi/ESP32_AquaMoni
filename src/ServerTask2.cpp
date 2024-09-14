@@ -149,8 +149,8 @@ void handleDeviceManualToggle(String deviceId) {
 
   Device& device = devices.at(deviceId.c_str());
 
-  device.toggleShellyState();
-  bool newState = device.shellyState;
+  device.toggleSmartPlugState();
+  bool newState = device.smartPlugState;
 
   JsonDocument dataJson;
   dataJson["id"] = deviceId;
@@ -183,11 +183,11 @@ void handleGetDevices() {
 
   for (auto& [id, device] : devices) {
     JsonDocument deviceJson;
-    ShellyPlug deviceShelly = device.getShellyInfo();
+    SmartPlug deviceSmartplug = device.getSmartPlugInfo();
     deviceJson["name"] = device.name;
     deviceJson["id"] = id;
-    deviceJson["state"] = deviceShelly.state;
-    deviceJson["isOnline"] = deviceShelly.hasInit;
+    deviceJson["state"] = deviceSmartplug.state;
+    deviceJson["isOnline"] = deviceSmartplug.hasInit;
     devicesStateArray.add(deviceJson);
   }
 
@@ -301,7 +301,7 @@ void ServerTaskCode2(void* pvParameters) {
   // for prod:
   // webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
   // for local :
-  webSocket.beginSSL("192.168.1.17", 3000, "/websocket");
+  webSocket.beginSSL("192.168.1.18", 3000, "/websocket");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(WEBSOCKET_RECONNECT_INTERVAL);
 

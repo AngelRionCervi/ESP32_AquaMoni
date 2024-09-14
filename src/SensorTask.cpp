@@ -120,9 +120,9 @@ void writeToHistorical(JsonDocument* currentData) {
 }
 
 void balance_fetchDevicesStates() {
-  for (auto& [_, device] : devices) {
-    device.fetchShellyState();
-  }
+  //   for (auto& [_, device] : devices) {
+  //     device.fetchSmartPlugState();
+  //   }
 }
 
 void balance_checkForAutoScheduleOn() {

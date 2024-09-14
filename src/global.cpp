@@ -1,5 +1,4 @@
 #include "global.h"
-
 #include "constants.h"
 
 bool sensorError = false;
@@ -13,7 +12,7 @@ WebServer server(80);
 WebSocketsClient webSocket;
 
 int scheduleUpdatePeriode = 3000;
-int devicesStatesUpdatePeriode = 3000;
+int devicesStatesUpdatePeriode = 10000;
 int measurementsUpdatePeriode = 10 * 60 * 1000;  // every 10 mins
 int updateLiveMeasurementsPeriode = 5000;
 int sendLiveMeasurementsUpdatePeriode = 5000;
