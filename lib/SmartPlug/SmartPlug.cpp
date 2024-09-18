@@ -6,8 +6,8 @@ void SmartPlug::setState(bool _state) {
   }
   HttpClient httpClient = HttpClient(wifiClient, address, port);
 
-  String request = _state ? smartPlugRequests[plugType].turnOn
-                          : smartPlugRequests[plugType].turnOff;
+  String request = _state ? smartPlugRequests[smartPlugType].turnOn
+                          : smartPlugRequests[smartPlugType].turnOff;
   state = _state;
 
   httpClient.get(request);
@@ -19,7 +19,7 @@ void SmartPlug::toggleState() {
 
 bool SmartPlug::fetchState() {
   HttpClient httpClient = HttpClient(wifiClient, address, port);
-  String request = smartPlugRequests[plugType].getState;
+  String request = smartPlugRequests[smartPlugType].getState;
 
   httpClient.get(request);
   int statusCode = httpClient.responseStatusCode();
@@ -38,10 +38,10 @@ bool SmartPlug::fetchState() {
   JsonDocument doc;
   deserializeJson(doc, response);
 
-  if (plugType == "tasmota") {
+  if (smartPlugType == PLUG_TASMOTA_NAME) {
     String isOn = doc["POWER"].as<String>();
     state = isOn == "ON";
-  } else if (plugType == "shelly") {
+  } else if (smartPlugType == PLUG_SHELLY_S_NAME) {
     bool isOn = doc["ison"].as<bool>();
     state = isOn;
   }
@@ -53,12 +53,12 @@ bool SmartPlug::init(const char* _address,
                      int _port,
                      WiFiClient _wifiClient,
                      String _name,
-                     String _plugType) {
+                     String _smartPlugType) {
   address = _address;
   port = _port;
   wifiClient = _wifiClient;
   name = _name;
-  plugType = _plugType;
+  smartPlugType = _smartPlugType;
 
   this->fetchState();
 

@@ -121,13 +121,13 @@ void setupDevices(JsonDocument& configJson) {
     const char* name = deviceObj["name"].as<const char*>();
     const char* ip = deviceObj["ip"].as<const char*>();
     const char* id = deviceObj["id"].as<const char*>();
-    const char* plugType = deviceObj["plugType"].as<const char*>();
+    const char* smartPlugType = deviceObj["smartPlugType"].as<const char*>();
     unsigned int button = deviceObj["button"].as<unsigned int>();
     JsonVariant schedule = deviceObj["schedule"].as<JsonVariant>();
 
     JsonDocument scheduleCopy = schedule;
 
-    Device newDevice(ip, name, plugType, id, ledMap[button], buttonMap[button], button,
+    Device newDevice(ip, name, smartPlugType, id, ledMap[button], buttonMap[button], button,
                      scheduleCopy, wifiClient);
     devices.emplace(id, newDevice);
     activityLed.update();

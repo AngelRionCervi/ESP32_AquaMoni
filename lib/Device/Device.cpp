@@ -3,7 +3,7 @@
 
 Device::Device(const char* _address,
                const char* _name,
-               const char* _plugType,
+               const char* _smartPlugType,
                const char* _id,
                int _ledPin,
                int _buttonPin,
@@ -17,7 +17,7 @@ Device::Device(const char* _address,
   buttonPin = _buttonPin;
   schedule = _schedule;
   button = _button;
-  plugType = _plugType;
+  smartPlugType = _smartPlugType;
 
   // pinMode(_buttonPin, INPUT_PULLUP);
   // pinMode(_ledPin, OUTPUT);
@@ -26,7 +26,7 @@ Device::Device(const char* _address,
   debouncer.mode(DELAYED, 10, LOW);
 
   smartPlug = SmartPlug();
-  bool initState = smartPlug.init(_address, _port, _wifiClient, _name, _plugType);
+  bool initState = smartPlug.init(_address, _port, _wifiClient, _name, _smartPlugType);
   smartPlugState = initState;
   // digitalWrite(ledPin, smartPlugState);
 }

@@ -11,14 +11,14 @@ class Device {
   unsigned int button;
   String name;
   String id;
-  String plugType;
+  String smartPlugType;
   JsonDocument schedule;
   bool smartPlugState;
 
  public:
   Device(const char* _address,
          const char* _name,
-         const char* _plugType,
+         const char* _smartPlugType,
          const char* _id,
          int _ledPin,
          int _buttonPin,

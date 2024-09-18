@@ -10,6 +10,9 @@ struct SmartPlugRequests {
   String turnOff;
 };
 
+static const String PLUG_TASMOTA_NAME = "tasmota_plug";
+static const String PLUG_SHELLY_S_NAME = "shelly_plug_s";
+
 static SmartPlugRequests tasmotaRequests = {
   getState : "/cm?cmnd=Power",
   turnOn : "/cm?cmnd=Power%20on",
@@ -23,8 +26,8 @@ static SmartPlugRequests shellyRequests = {
 };
 
 static std::map<String, SmartPlugRequests> smartPlugRequests = {
-    {"tasmota", tasmotaRequests},
-    {"shelly", shellyRequests},
+    {PLUG_TASMOTA_NAME, tasmotaRequests},
+    {PLUG_SHELLY_S_NAME, shellyRequests},
 };
 
 class SmartPlug {
@@ -34,7 +37,7 @@ class SmartPlug {
  public:
   String address;
   String name;
-  String plugType;
+  String smartPlugType;
   bool state;
   int port = 80;
   bool hasInit = false;
@@ -47,5 +50,5 @@ class SmartPlug {
             int _port,
             WiFiClient _wifiClient,
             String _name,
-            String _plugType);
+            String _smartPlugType);
 };
