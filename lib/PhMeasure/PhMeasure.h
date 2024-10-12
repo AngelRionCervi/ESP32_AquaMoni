@@ -1,6 +1,6 @@
 class PhMeasure {
  public:
-  float debug_phVoltage;
+  float calibration_phVoltage;
   int phSensorPin;
   int phNeutralVoltage;
   int phAcidVoltage;
@@ -9,4 +9,5 @@ class PhMeasure {
   PhMeasure(int phSensorPin, int phNeutralVoltage, int phAcidVoltage);
   void begin();
   float mesurePh();
+  int getCalibrationVoltage();
 };

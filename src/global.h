@@ -30,6 +30,7 @@ extern String wifiPass;
 extern String serverPass;
 extern int autoSchedulesOnAfter;
 extern bool enableMonitoring;
+extern bool phCalibrationState;
 extern ScheduleButton scheduleButton;
 extern ActivityLed activityLed;
 extern int scheduleUpdatePeriode;
@@ -46,6 +47,9 @@ extern int updateLiveMeasurementsPeriode;
 extern int liveMeasurementsLastMillis;
 extern int sendLiveMeasurementsUpdatePeriode;
 extern int sendLiveMeasurementsLastMillis;
+extern int phMvCalibrationPeriode;
+extern int phMvCalibrationLastMillis;
+extern int phCalibrationMv;
 extern String boxId;
 
 #endif

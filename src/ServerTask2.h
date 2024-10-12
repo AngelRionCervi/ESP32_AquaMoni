@@ -46,4 +46,8 @@ void handleMonitoringGetLive();
 
 void handleMonitoringGetHistorical(String argValue);
 
+void togglePhCalibration(bool state);
+
+void sendPhMvCalibrationUpdate();
+
 JsonDocument deserializePost(String body);

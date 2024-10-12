@@ -18,6 +18,7 @@ int updateLiveMeasurementsPeriode = 5000;
 int sendLiveMeasurementsUpdatePeriode = 5000;
 int sendLastMeasurementsUpdatePeriode = 10 * 60 * 1000;  // every 10 mins
 int scheduleOnPeriode = 1000;
+int phMvCalibrationPeriode = 1000;
 int liveMeasurementsLastMillis = 0;
 int sendLiveMeasurementsLastMillis = 0;
 int scheduleUpdateLastMillis = 0;
@@ -25,6 +26,7 @@ int devicesStatesUpdateLastMillis = 0;
 int measurementsUpdateLastMillis = 0;
 int scheduleOnLastMillis = 0;
 int sendLastMeasurementsMillis = 0;
+int phMvCalibrationLastMillis = 0;
 
 String wifiSSID;
 String wifiPass;
@@ -32,6 +34,9 @@ String serverPass;
 String boxId;
 int autoSchedulesOnAfter;
 bool enableMonitoring;
+bool phCalibrationState;
+
+int phCalibrationMv = 0;
 
 ScheduleButton scheduleButton(BUTTON_SCHEDULE_PIN,
                               SCHEDULE_LED_GREEN_PIN,

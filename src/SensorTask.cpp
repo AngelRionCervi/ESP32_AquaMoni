@@ -43,6 +43,7 @@ void takeMeasurements(PhMeasure& phMeasure,
                       bool saveToSd) {
   float phValue = phMeasure.mesurePh();
   float tempValue = tempMeasure.measureWaterTemp();
+  phCalibrationMv = phMeasure.getCalibrationVoltage();
 
   if (phValue > 15 || tempValue < 0) {
     sensorError = true;

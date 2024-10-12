@@ -16,6 +16,9 @@ String monitoringGetLiveType = "box_monitoring_get_live";
 String startHistoricalType = "box_start_historical";
 String endHistoricalType = "box_end_historical";
 String historicalDataStreamType = "box_hds";
+String setOnPhPhCalibrationType = "box_set_on_ph_calibration";
+String setOffPhPhCalibrationType = "box_set_off_ph_calibration";
+String phMvCalibrationType = "box_ph_mv_calibration";
 
 void messageToMethods(String message) {
   JsonDocument messageJson;
@@ -48,6 +51,10 @@ void messageToMethods(String message) {
     handleMonitoringGetLastHistoricalUpdate();
   } else if (type == monitoringGetHistoricalType) {
     handleMonitoringGetHistorical(dataJson);
+  } else if (type == setOnPhPhCalibrationType) {
+    togglePhCalibration(true);
+  } else if (type == setOffPhPhCalibrationType) {
+    togglePhCalibration(false);
   } else {
     sendError("Unknown call type: ", type);
   }
@@ -296,34 +303,6 @@ void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
   }
 }
 
-void ServerTaskCode2(void* pvParameters) {
-  Serial.println("Connecting to websocket server");
-  // for prod:
-  // webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
-  // for local :
-  webSocket.beginSSL("192.168.1.18", 3000, "/websocket");
-  webSocket.onEvent(webSocketEvent);
-  webSocket.setReconnectInterval(WEBSOCKET_RECONNECT_INTERVAL);
-
-  for (;;) {
-    webSocket.loop();
-    int millisNow = millis();
-    if (millisNow - sendLastMeasurementsMillis >
-        sendLastMeasurementsUpdatePeriode) {
-      handleMonitoringGetLastHistoricalUpdate();
-      sendLastMeasurementsMillis = millisNow;
-    }
-
-    if (millisNow - sendLiveMeasurementsLastMillis >
-        sendLiveMeasurementsUpdatePeriode) {
-      handleMonitoringGetLive();
-      sendLiveMeasurementsLastMillis = millisNow;
-    }
-
-    delay(2);
-  }
-}
-
 void handleMonitoringGetLive() {
   String type = monitoringGetLiveType;
 
@@ -418,6 +397,57 @@ void handleMonitoringGetHistorical(String totalDays) {
   delete[] days;
 
   return;
+}
+
+void togglePhCalibration(bool state) {
+  phCalibrationState = state;
+}
+
+void sendPhMvCalibrationUpdate() {
+  String type = phMvCalibrationType;
+
+  JsonDocument phMvCalibrationResponseJson;
+  phMvCalibrationResponseJson["data"] = phCalibrationMv;
+  phMvCalibrationResponseJson["type"] = type;
+
+  sendSuccess(phMvCalibrationResponseJson);
+}
+
+void ServerTaskCode2(void* pvParameters) {
+  Serial.println("Connecting to websocket server");
+  // for prod:
+  // webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
+  // for local :
+  // .18 = desktop
+  // .17 = laptop
+  webSocket.beginSSL("192.168.1.18", 3000, "/websocket");
+  webSocket.onEvent(webSocketEvent);
+  webSocket.setReconnectInterval(WEBSOCKET_RECONNECT_INTERVAL);
+
+  for (;;) {
+    webSocket.loop();
+    int millisNow = millis();
+    if (millisNow - sendLastMeasurementsMillis >
+        sendLastMeasurementsUpdatePeriode) {
+      handleMonitoringGetLastHistoricalUpdate();
+      sendLastMeasurementsMillis = millisNow;
+    }
+
+    if (millisNow - sendLiveMeasurementsLastMillis >
+        sendLiveMeasurementsUpdatePeriode) {
+      handleMonitoringGetLive();
+      sendLiveMeasurementsLastMillis = millisNow;
+    }
+
+    if (phCalibrationState) {
+      if (millisNow - phMvCalibrationLastMillis > phMvCalibrationPeriode) {
+        sendPhMvCalibrationUpdate();
+        phMvCalibrationLastMillis = millisNow;
+      }
+    }
+
+    delay(2);
+  }
 }
 
 JsonDocument deserializePost(String body) {
