@@ -106,6 +106,8 @@ void loadConfig(JsonDocument& configJson) {
   wifiSSID = secretsJson["wifiSSID"].as<String>();
   wifiPass = secretsJson["wifiPass"].as<String>();
   serverPass = secretsJson["serverPass"].as<String>();
+  phCalibration4Mv = settingsConfig["phCalibration4Mv"].as<int>() || 0;
+  phCalibration7Mv = settingsConfig["phCalibration7Mv"].as<int>() || 0;
 }
 
 void setupDevices(JsonDocument& configJson) {

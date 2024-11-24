@@ -50,6 +50,8 @@ extern int sendLiveMeasurementsLastMillis;
 extern int phMvCalibrationPeriode;
 extern int phMvCalibrationLastMillis;
 extern int phCalibrationMv;
+extern int phCalibration4Mv;
+extern int phCalibration7Mv;
 extern String boxId;
 
 #endif

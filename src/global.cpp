@@ -27,6 +27,8 @@ int measurementsUpdateLastMillis = 0;
 int scheduleOnLastMillis = 0;
 int sendLastMeasurementsMillis = 0;
 int phMvCalibrationLastMillis = 0;
+int phCalibration4Mv = 0;
+int phCalibration7Mv = 0;
 
 String wifiSSID;
 String wifiPass;
