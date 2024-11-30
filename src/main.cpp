@@ -14,8 +14,8 @@
 
 #include "BtSetup.h"
 #include "Device.h"
-#include "ServerTask2.h"
 #include "SensorTask.h"
+#include "ServerTask2.h"
 #include "constants.h"
 #include "global.h"
 
@@ -106,8 +106,10 @@ void loadConfig(JsonDocument& configJson) {
   wifiSSID = secretsJson["wifiSSID"].as<String>();
   wifiPass = secretsJson["wifiPass"].as<String>();
   serverPass = secretsJson["serverPass"].as<String>();
-  phCalibration4Mv = settingsConfig["phCalibration4Mv"].as<int>() || 0;
-  phCalibration7Mv = settingsConfig["phCalibration7Mv"].as<int>() || 0;
+
+  JsonObject phCalibration = settingsConfig["phCalibration"];
+  phCalibration4Mv = phCalibration["ph4Mv"].as<int>() || 0;
+  phCalibration7Mv = phCalibration["ph7Mv"].as<int>() || 0;
 }
 
 void setupDevices(JsonDocument& configJson) {
@@ -129,8 +131,8 @@ void setupDevices(JsonDocument& configJson) {
 
     JsonDocument scheduleCopy = schedule;
 
-    Device newDevice(ip, name, smartPlugType, id, ledMap[button], buttonMap[button], button,
-                     scheduleCopy, wifiClient);
+    Device newDevice(ip, name, smartPlugType, id, ledMap[button],
+                     buttonMap[button], button, scheduleCopy, wifiClient);
     devices.emplace(id, newDevice);
     activityLed.update();
   }

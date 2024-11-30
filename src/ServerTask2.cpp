@@ -19,7 +19,6 @@ String historicalDataStreamType = "box_hds";
 String setOnPhPhCalibrationType = "box_set_on_ph_calibration";
 String setOffPhPhCalibrationType = "box_set_off_ph_calibration";
 String phMvCalibrationType = "box_ph_mv_calibration";
-String phSetCalibrationValuesType = "box_ph_set_calibration_values";
 
 void messageToMethods(String message) {
   JsonDocument messageJson;
@@ -56,8 +55,6 @@ void messageToMethods(String message) {
     togglePhCalibration(true);
   } else if (type == setOffPhPhCalibrationType) {
     togglePhCalibration(false);
-  } else if (phSetCalibrationValuesType) {
-    setPhCalibrationValues(dataJson["ph4"], dataJson["ph7"]);
   } else {
     sendError("Unknown call type: ", type);
   }
@@ -414,18 +411,6 @@ void sendPhMvCalibrationUpdate() {
   phMvCalibrationResponseJson["type"] = type;
 
   sendSuccess(phMvCalibrationResponseJson);
-}
-
-void setPhCalibrationValues(int ph4, int ph7) {
-  String type = phSetCalibrationValuesType;
-
-  phCalibration4Mv = ph4;
-  phCalibration7Mv = ph7;
-
-  JsonDocument phCalibrationValuesResponseJson;
-  phCalibrationValuesResponseJson["data"] = "Calibration values set";
-
-  sendSuccess(phCalibrationValuesResponseJson);
 }
 
 void ServerTaskCode2(void* pvParameters) {
