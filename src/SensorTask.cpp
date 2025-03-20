@@ -131,10 +131,8 @@ void balance_checkForAutoScheduleOn() {
     return;
   }
 
-  int autoScheduleOnAfterMillis = autoSchedulesOnAfter * 60;
-
   if (DateTime.now() - scheduleButton.getScheduleOnStartTime() >
-      autoScheduleOnAfterMillis) {
+      autoSchedulesOnAfter) {
     scheduleButton.setState(true);
   }
 }
