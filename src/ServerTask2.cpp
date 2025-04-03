@@ -184,6 +184,23 @@ void handleScheduleManualToggle() {
   return;
 }
 
+void checkForAutoScheduleOn() {
+  if (scheduleButton.getState() || autoSchedulesOnAfter == 0) {
+    return;
+  }
+
+  if (DateTime.now() - scheduleButton.getScheduleOnStartTime() >
+      autoSchedulesOnAfter) {
+    scheduleButton.setState(true);
+
+    JsonDocument donePayloadJson;
+    donePayloadJson["data"] = true;
+    donePayloadJson["type"] = scheduleToggleType;
+
+    sendSuccess(donePayloadJson);
+  }
+}
+
 void handleGetDevices() {
   JsonDocument devicesJson;
   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
@@ -444,6 +461,11 @@ void ServerTaskCode2(void* pvParameters) {
         sendPhMvCalibrationUpdate();
         phMvCalibrationLastMillis = millisNow;
       }
+    }
+
+    if (millisNow - scheduleOnLastMillis > scheduleOnPeriode) {
+      checkForAutoScheduleOn();
+      scheduleOnLastMillis = millisNow;
     }
 
     delay(2);

@@ -29,10 +29,10 @@ void SensorTaskCode(void* pvParameters) {
       devicesStatesUpdateLastMillis = millisNow;
     }
 
-    if (millisNow - scheduleOnLastMillis > scheduleOnPeriode) {
-      balance_checkForAutoScheduleOn();
-      scheduleOnLastMillis = millisNow;
-    }
+    // if (millisNow - scheduleOnLastMillis > scheduleOnPeriode) {
+    //   balance_checkForAutoScheduleOn();
+    //   scheduleOnLastMillis = millisNow;
+    // }
 
     delay(2);
   }
@@ -127,12 +127,12 @@ void balance_fetchDevicesStates() {
 }
 
 void balance_checkForAutoScheduleOn() {
-  if (scheduleButton.getState() || autoSchedulesOnAfter == 0) {
-    return;
-  }
+  // if (scheduleButton.getState() || autoSchedulesOnAfter == 0) {
+  //   return;
+  // }
 
-  if (DateTime.now() - scheduleButton.getScheduleOnStartTime() >
-      autoSchedulesOnAfter) {
-    scheduleButton.setState(true);
-  }
+  // if (DateTime.now() - scheduleButton.getScheduleOnStartTime() >
+  //     autoSchedulesOnAfter) {
+  //   scheduleButton.setState(true);
+  // }
 }
