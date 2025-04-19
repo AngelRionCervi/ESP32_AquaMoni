@@ -39,14 +39,15 @@ class SmartPlug {
   String name;
   String smartPlugType;
   bool state;
+  bool isOnline;
   int port = 80;
   bool hasInit = false;
 
  public:
   void setState(bool _state);
   void toggleState();
-  bool fetchState();
-  bool init(const char* _address,
+  JsonDocument fetchInfo();
+  void init(const char* _address,
             int _port,
             WiFiClient _wifiClient,
             String _name,

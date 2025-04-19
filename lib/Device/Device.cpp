@@ -26,8 +26,9 @@ Device::Device(const char* _address,
   debouncer.mode(DELAYED, 10, LOW);
 
   smartPlug = SmartPlug();
-  bool initState = smartPlug.init(_address, _port, _wifiClient, _name, _smartPlugType);
-  smartPlugState = initState;
+  smartPlug.init(_address, _port, _wifiClient, _name, _smartPlugType);
+  smartPlugState = smartPlug.state;
+  smartPlugOnline = smartPlug.isOnline;
   // digitalWrite(ledPin, smartPlugState);
 }
 
@@ -87,7 +88,8 @@ void Device::checkSchedule() {
 }
 
 bool Device::fetchSmartPlugState() {
-  smartPlugState = smartPlug.fetchState();
+  JsonDocument smartPlugInfo = smartPlug.fetchInfo();
+  smartPlugState = smartPlugInfo["state"].as<bool>();
   this->updateLed();
   return smartPlugState;
 }

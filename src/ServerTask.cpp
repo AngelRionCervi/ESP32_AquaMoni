@@ -1,489 +1,497 @@
-// #include "ServerTask.h"
+#include "ServerTask.h"
+
+String handShakeType = "box_handshake";
+String initType = "box_init";
+String updateConfigType = "box_update_config";
+String deviceToggleType = "box_device_manual_toggle";
+String scheduleToggleType = "box_schedule_toggle";
+String getDevicesInfoType = "box_get_devices_infos";
+String getConfigType = "box_get_config";
+String getScheduleStateType = "box_get_schedule_state";
+String pingType = "box_ping";
+String restartType = "box_restart";
+String monitoringGetLastType = "box_monitoring_get_last";
+String monitoringGetHistoricalType = "box_monitoring_get_historical";
+String monitoringGetLiveType = "box_monitoring_get_live";
+String startHistoricalType = "box_start_historical";
+String endHistoricalType = "box_end_historical";
+String historicalDataStreamType = "box_hds";
+String setOnPhPhCalibrationType = "box_set_on_ph_calibration";
+String setOffPhPhCalibrationType = "box_set_off_ph_calibration";
+String phMvCalibrationType = "box_ph_mv_calibration";
+
+void messageToMethods(String message) {
+  JsonDocument messageJson;
+  deserializeJson(messageJson, message);
+
+  String type = messageJson["type"];
+  JsonVariant dataJson = messageJson["data"];
+
+  Serial.println("Message type: ");
+  Serial.println(type);
+
+  if (type == handShakeType) {
+    sendHandShake();
+  } else if (type == initType) {
+    sendInitBox();
+  } else if (type == updateConfigType) {
+    handleUpdateConfig(dataJson);
+  } else if (type == deviceToggleType) {
+    handleDeviceManualToggle(dataJson);
+  } else if (type == scheduleToggleType) {
+    handleScheduleManualToggle();
+  } else if (type == getDevicesInfoType) {
+    handleGetDevices();
+  } else if (type == getConfigType) {
+    handleGetConfig();
+  } else if (type == getScheduleStateType) {
+    handleGetScheduleState();
+  } else if (type == pingType) {
+    handlePing();
+  } else if (type == restartType) {
+    handleRestart();
+  } else if (type == monitoringGetLastType) {
+    handleMonitoringGetLastHistoricalUpdate();
+  } else if (type == monitoringGetHistoricalType) {
+    handleMonitoringGetHistorical(dataJson);
+  } else if (type == setOnPhPhCalibrationType) {
+    togglePhCalibration(true);
+  } else if (type == setOffPhPhCalibrationType) {
+    togglePhCalibration(false);
+  } else {
+    sendError("Unknown call type: ", type);
+  }
+}
+
+void sendMessage(String message) {
+  Serial.println("Sending message: ");
+  Serial.println(message);
+  webSocket.sendTXT(message);
+}
+
+void sendSuccess(JsonDocument& successJson) {
+  successJson["status"] = "success";
+  successJson["source"] = "box";
+  successJson["boxId"] = boxId;
+  String successString;
+  serializeJson(successJson, successString);
+
+  sendMessage(successString);
+}
+
+void sendError(String errorMessage, String type) {
+  JsonDocument errorJson;
+  String errorString;
+
+  errorJson["status"] = "error";
+  errorJson["type"] = type;
+  errorJson["data"] = errorMessage;
+  errorJson["source"] = "box";
+  errorJson["boxId"] = boxId;
+
+  serializeJson(errorJson, errorString);
+  sendMessage(errorString);
+}
+
+void sendError(String errorMessage, String type, JsonDocument& info) {
+  JsonDocument errorJson;
+  String errorString;
+
+  errorJson["status"] = "error";
+  errorJson["type"] = type;
+  errorJson["data"] = errorMessage;
+  errorJson["source"] = "box";
+  errorJson["info"] = info;
+  errorJson["boxId"] = boxId;
+
+  serializeJson(errorJson, errorString);
+  sendMessage(errorString);
+}
+
+void sendHandShake() {
+  JsonDocument handShakeJson;
+  handShakeJson["data"] = boxId;
+  handShakeJson["type"] = handShakeType;
+
+  sendSuccess(handShakeJson);
+}
+
+void sendInitBox() {
+  handleGetConfig();
+  handleGetDevices();
+  handleGetScheduleState();
+}
+
+void handleUpdateConfig(JsonVariant newConfigJson) {
+  String type = updateConfigType;
+  File fileConfig = SD.open(FILE_CONFIG, "w");
+
+  if (!fileConfig) {
+    sendError("Could not open config.jso [handleUpdateConfig]", type);
+    return;
+  }
+
+  serializeJson(newConfigJson, fileConfig);
+  fileConfig.close();
+
+  JsonDocument updatedJson;
+  updatedJson["data"] = "Config updated, resetting...";
+  updatedJson["type"] = type;
+
+  sendSuccess(updatedJson);
+
+  return;
+}
+
+void handleDeviceManualToggle(String deviceId) {
+  if (scheduleButton.getState()) {
+    return;
+  }
+
+  if (devices.count(deviceId.c_str()) == 0) {
+    String errorMessage = "Device not found [handleDeviceManualToggle]";
+    Serial.println(errorMessage);
+    JsonDocument dataJson;
+    dataJson["id"] = deviceId;
+    sendError(errorMessage, deviceToggleType, dataJson);
+    return;
+  }
+
+  Device& device = devices.at(deviceId.c_str());
+
+  device.toggleSmartPlugState();
+  bool newState = device.smartPlugState;
+
+  JsonDocument dataJson;
+  dataJson["id"] = deviceId;
+  dataJson["state"] = newState;
+
+  JsonDocument donePayloadJson;
+  donePayloadJson["data"] = dataJson;
+  donePayloadJson["type"] = deviceToggleType;
+
+  sendSuccess(donePayloadJson);
+
+  return;
+}
 
-// void handleLast() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
+void handleScheduleManualToggle() {
+  scheduleButton.toggleState();
 
-//   File fileLast = SD.open(FILE_LAST, "r");
-//   if (!fileLast) {
-//     Serial.println("Could not open last.jso for sending");
-//     activityLed.setState("errorBlink");
-//   }
+  JsonDocument donePayloadJson;
+  donePayloadJson["data"] = scheduleButton.getState();
+  donePayloadJson["type"] = scheduleToggleType;
+
+  sendSuccess(donePayloadJson);
+
+  return;
+}
 
-//   String content;
-//   while (fileLast.available()) {
-//     content += fileLast.readString();
-//   }
+void checkForAutoScheduleOn() {
+  if (scheduleButton.getState() || autoSchedulesOnAfter == 0) {
+    return;
+  }
 
-//   JsonDocument lastJson;
-//   deserializeJson(lastJson, content);
+  if (DateTime.now() - scheduleButton.getScheduleOnStartTime() >
+      autoSchedulesOnAfter) {
+    scheduleButton.setState(true);
 
-//   JsonDocument getLastResponseJson;
-//   getLastResponseJson["data"] = lastJson;
-//   getLastResponseJson["status"] = "success";
+    JsonDocument donePayloadJson;
+    donePayloadJson["data"] = true;
+    donePayloadJson["type"] = scheduleToggleType;
+
+    sendSuccess(donePayloadJson);
+  }
+}
+
+void handleGetDevices() {
+  JsonDocument devicesJson;
+  JsonArray devicesStateArray = devicesJson.to<JsonArray>();
+
+  for (auto& [id, device] : devices) {
+    JsonDocument deviceJson;
+    SmartPlug deviceSmartplug = device.getSmartPlugInfo();
+    deviceJson["name"] = device.name;
+    deviceJson["id"] = id;
+    deviceJson["state"] = deviceSmartplug.state;
+    deviceJson["isOnline"] = deviceSmartplug.isOnline;
+    devicesStateArray.add(deviceJson);
+  }
+
+  JsonDocument updateResponseJson;
+  updateResponseJson["data"] = devicesStateArray;
+  updateResponseJson["type"] = getDevicesInfoType;
+
+  sendSuccess(updateResponseJson);
+
+  return;
+}
+
+void handleGetConfig() {
+  String type = getConfigType;
+  File fileConfig = SD.open(FILE_CONFIG, "r");
+
+  if (!fileConfig) {
+    String errorMessage = "Could not open config.jso in [handleGetConfig]";
+    Serial.println(errorMessage);
+    sendError(errorMessage, type);
+    return;
+  }
+
+  String configString;
+  while (fileConfig.available()) {
+    configString += fileConfig.readString();
+  }
+
+  JsonDocument configJson;
+  deserializeJson(configJson, configString);
+
+  JsonDocument getConfigResponseJson;
+  getConfigResponseJson["data"] = configJson;
+  getConfigResponseJson["type"] = type;
+
+  sendSuccess(getConfigResponseJson);
+
+  return;
+}
+
+void handleGetScheduleState() {
+  String type = getScheduleStateType;
+  JsonDocument getScheduleStateResponseJson;
+  getScheduleStateResponseJson["data"] = scheduleButton.getState();
+  getScheduleStateResponseJson["type"] = type;
+
+  sendSuccess(getScheduleStateResponseJson);
+
+  return;
+}
+
+void handlePing() {
+  String type = pingType;
+  JsonDocument pingJson;
+  pingJson["data"] = "Online and authentified !";
+  pingJson["type"] = type;
+
+  sendSuccess(pingJson);
 
-//   String getLastResponseString;
-//   serializeJson(getLastResponseJson, getLastResponseString);
+  return;
+}
+
+void handleRestart() {
+  String type = restartType;
+  JsonDocument restartJson;
+  restartJson["data"] = "Restarting...";
+  restartJson["type"] = type;
 
-//   server.send(200, "application/json", getLastResponseString);
-//   fileLast.close();
-// }
+  sendSuccess(restartJson);
 
-// void handleHistorical() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
+  delay(1000);
 
-//   if (server.argName(0) != "r") {
-//     handleNotFound();
-//   }
+  ESP.restart();
+
+  return;
+}
+
+void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+  switch (type) {
+    case WStype_DISCONNECTED:
+      Serial.println("[WSc] Disconnected!");
+      break;
+    case WStype_CONNECTED:
+      Serial.print("[WSc] Connected to url: ");
+      Serial.println((char*)payload);
+
+      sendHandShake();
+      break;
+    case WStype_TEXT:
+      Serial.print("[WSc] get text: ");
+      Serial.println((char*)payload);
 
-//   String rootPath = "/historical/";
-//   String argValue = server.arg(0);
+      messageToMethods((char*)payload);
+      break;
+    case WStype_BIN:
+      Serial.print("[WSc] get binary, length: ");
+      Serial.println(length);
 
-//   int daysLength;
+      break;
+    case WStype_ERROR:
+    case WStype_FRAGMENT_TEXT_START:
+    case WStype_FRAGMENT_BIN_START:
+    case WStype_FRAGMENT:
+    case WStype_FRAGMENT_FIN:
+      break;
+  }
+}
 
-//   String* days = splitString(argValue, ',', daysLength);
+void handleMonitoringGetLive() {
+  String type = monitoringGetLiveType;
 
-//   if (daysLength > 62) {
-//     server.send(500, "text/plain", "Payload too big !");
+  JsonDocument liveJson;
+  liveJson["ph"] = monitoringLiveMap["ph"];
+  liveJson["temp"] = monitoringLiveMap["temp"];
 
-//     return;
-//   }
+  JsonDocument liveJsonResponse;
+  liveJsonResponse["data"] = liveJson;
+  liveJsonResponse["type"] = type;
 
-//   server.sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-//   server.sendHeader("Expires", "-1");
-//   server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  sendSuccess(liveJsonResponse);
+}
 
-//   server.send(200, "text/plain", "");
+void handleMonitoringGetLastHistoricalUpdate() {
+  String type = monitoringGetLastType;
 
-//   for (int i = 0; i < daysLength; i++) {
-//     String fileName = "/historical/";
-//     fileName += days[i];
-//     fileName += ".jso";
+  File fileLast = SD.open(FILE_LAST, "r");
 
-//     Serial.println("fileName");
-//     Serial.println(fileName);
-
-//     File dayFile = SD.open(fileName, "r");
-
-//     if (!dayFile) {
-//       Serial.println("");
-//       Serial.print("Could not open: ");
-//       Serial.println(fileName);
-//       dayFile.close();
-//     } else {
-//       String content = "";
-
-//       while (dayFile.available()) {
-//         content += dayFile.readString();
-//       }
-
-//       server.sendContent(content);
-
-//       dayFile.close();
-//       // Serial.println(days[i]);
-//     }
-//   }
-
-//   server.client().stop();
-
-//   delete[] days;
-
-//   return;
-// }
-
-// void handleUpdateConfig() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   JsonDocument newConfigJson = deserializePost(server.arg(0));
-
-//   File fileConfig = SD.open(FILE_CONFIG, "w");
-
-//   if (!fileConfig) {
-//     JsonDocument noConfigJson;
-//     noConfigJson["message"] = "Could not open config.jso [handleUpdateConfig]";
-//     noConfigJson["status"] = "error";
-
-//     String noConfigString;
-//     serializeJson(noConfigJson, noConfigString);
-
-//     server.send(500, "application/json", noConfigString);
-//     return;
-//   }
-
-//   serializeJson(newConfigJson, fileConfig);
-//   fileConfig.close();
-
-//   JsonDocument updatedJson;
-//   updatedJson["message"] = "Config updated, resetting...";
-//   updatedJson["status"] = "success";
-
-//   String updateString;
-//   serializeJson(updatedJson, updateString);
-
-//   server.send(200, "application/json", updateString);
-//   Serial.println("Config updated");
-
-//   return;
-// }
-
-// void handleNotFound() {
-//   JsonDocument notFoundJson;
-//   notFoundJson["message"] = "route not found";
-//   notFoundJson["status"] = "error";
-
-//   String notFoundString;
-//   serializeJson(notFoundJson, notFoundString);
-
-//   server.send(404, "application/json", notFoundString);
-
-//   return;
-// }
-
-// void handleDeviceManualToggle() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   if (server.argName(0) != "id") {
-//     handleNotFound();
-//     return;
-//   }
-
-//   if (!scheduleButton.getState()) {
-//     JsonDocument donePayloadJson;
-//     donePayloadJson["status"] = "error";
-//     donePayloadJson["message"] = "Schedules not disabled !";
-//   }
-
-//   std::string deviceId = server.arg(0).c_str();
-//   Device& device = devices.at(deviceId);
-
-//   device.toggleShellyState();
-
-//   bool newState = device.shellyState;
-
-//   JsonDocument donePayloadJson;
-//   donePayloadJson["status"] = "success";
-//   donePayloadJson["newState"] = newState;
-
-//   String donePayloadString;
-//   serializeJson(donePayloadJson, donePayloadString);
-
-//   server.send(200, "application/json", donePayloadString);
-
-//   return;
-// }
-
-// void handleScheduleManualToggle() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   scheduleButton.toggleState();
-
-//   JsonDocument donePayloadJson;
-//   donePayloadJson["status"] = "success";
-//   donePayloadJson["newState"] = scheduleButton.getState();
-
-//   String donePayloadString;
-//   serializeJson(donePayloadJson, donePayloadString);
-
-//   server.send(200, "application/json", donePayloadString);
-
-//   return;
-// }
-
-// void handleGetDevices() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   JsonDocument devicesJson;
-//   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
-
-//   for (auto& [id, device] : devices) {
-//     JsonDocument deviceJson;
-//     ShellyPlug deviceShelly = device.getShellyInfo();
-//     deviceJson["name"] = device.name;
-//     deviceJson["id"] = id;
-//     deviceJson["state"] = deviceShelly.state;
-//     deviceJson["isOnline"] = deviceShelly.hasInit;
-//     deviceJson["schedule"] = device.schedule;
-//     deviceJson["button"] = device.button;
-//     devicesStateArray.add(deviceJson);
-//   }
-
-//   JsonDocument devicesStateResponseJson;
-//   devicesStateResponseJson["data"] = devicesStateArray;
-//   devicesStateResponseJson["status"] = "success";
-
-//   String getDevicesStateResponseString;
-//   serializeJson(devicesStateResponseJson, getDevicesStateResponseString);
-
-//   server.send(200, "application/json", getDevicesStateResponseString);
-
-//   return;
-// }
-
-// void handleGetHardwareToggleUpdate() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   JsonDocument update;
-//   JsonDocument devicesJson;
-//   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
-
-//   for (auto& [id, device] : devices) {
-//     JsonDocument deviceJson;
-//     ShellyPlug deviceShelly = device.getShellyInfo();
-//     deviceJson["name"] = device.name;
-//     deviceJson["id"] = id;
-//     deviceJson["state"] = deviceShelly.state;
-//     deviceJson["isOnline"] = deviceShelly.hasInit;
-//     devicesStateArray.add(deviceJson);
-//   }
-
-//   update["devices"] = devicesStateArray;
-//   update["isScheduleOn"] = scheduleButton.getState();
-
-//   JsonDocument updateResponseJson;
-//   updateResponseJson["data"] = update;
-//   updateResponseJson["status"] = "success";
-
-//   String updateResponseString;
-//   serializeJson(updateResponseJson, updateResponseString);
-
-//   server.send(200, "application/json", updateResponseString);
-
-//   return;
-// }
-
-// void handleGetConfig() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   File fileConfig = SD.open(FILE_CONFIG, "r");
-
-//   if (!fileConfig) {
-//     Serial.println("Could not open config.jso in [handleGetConfig]");
-//   }
-
-//   String configString;
-//   while (fileConfig.available()) {
-//     configString += fileConfig.readString();
-//   }
-
-//   JsonDocument configJson;
-//   deserializeJson(configJson, configString);
-
-//   JsonDocument getConfigResponseJson;
-//   getConfigResponseJson["data"] = configJson;
-//   getConfigResponseJson["status"] = "success";
-
-//   String getConfigResponseString;
-//   serializeJson(getConfigResponseJson, getConfigResponseString);
-
-//   server.send(200, "application/json", getConfigResponseString);
-
-//   return;
-// }
-
-// void handleGetScheduleState() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   JsonDocument getScheduleStateResponseJson;
-//   getScheduleStateResponseJson["data"] = scheduleButton.getState();
-//   getScheduleStateResponseJson["status"] = "success";
-
-//   String getScheduleStateResponseString;
-//   serializeJson(getScheduleStateResponseJson, getScheduleStateResponseString);
-
-//   server.send(200, "application/json", getScheduleStateResponseString);
-
-//   return;
-// }
-
-// void handleLogin() {
-//   JsonDocument loginJson;
-//   String loginString;
-//   int statusCode = 401;
-
-//   if (server.arg(0)) {
-//     JsonDocument authBody = deserializePost(server.arg(0));
-
-//     if (authBody["pass"] == serverPass) {
-//       loginJson["status"] = "success";
-//       loginJson["data"] = "Log in success !";
-//       statusCode = 200;
-//     } else {
-//       loginJson["status"] = "error";
-//       loginJson["data"] = "Log in Failed";
-//     }
-//   } else {
-//     loginJson["status"] = "error";
-//     loginJson["data"] = "No credentials provided !";
-//   }
-
-//   serializeJson(loginJson, loginString);
-//   server.send(200, "application/json", loginString);
-
-//   return;
-// }
-
-// void handlePing() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   JsonDocument pingJson;
-//   pingJson["status"] = "success";
-//   pingJson["data"] = "Online and authentified !";
-
-//   String pingString;
-//   serializeJson(pingJson, pingString);
-//   server.send(200, "application/json", pingString);
-
-//   return;
-// }
-
-// void handleRestart() {
-//   if (!isAuthentified()) {
-//     return;
-//   }
-
-//   JsonDocument restartJson;
-//   restartJson["status"] = "success";
-//   restartJson["data"] = "Restarting...";
-
-//   String restartString;
-//   serializeJson(restartJson, restartString);
-//   server.send(200, "application/json", restartString);
-
-//   ESP.restart();
-
-//   return;
-// }
-
-// void ServerTaskCode(void* pvParameters) {
-//   Serial.print("ServerTask running on core ");
-//   Serial.println(xPortGetCoreID());
-
-//   if (MDNS.begin("esp32")) {
-//     Serial.println("MDNS responder started");
-//   }
-
-//   Serial.print("Server address: ");
-//   Serial.println(WiFi.localIP());
-
-//   server.enableCORS();
-
-//   server.on("/ping", HTTP_GET, handlePing);
-//   server.on("/login", HTTP_POST, handleLogin);
-//   server.on("/updateconfig", HTTP_POST, handleUpdateConfig);
-//   server.on("/last", HTTP_GET, handleLast);
-//   server.on("/historical", HTTP_GET, handleHistorical);
-//   server.on("/toggledevice", HTTP_GET, handleDeviceManualToggle);
-//   server.on("/toggleschedule", HTTP_GET, handleScheduleManualToggle);
-//   server.on("/getschedulestate", HTTP_GET, handleGetScheduleState);
-//   server.on("/gethardwaretoggleupdate", HTTP_GET,
-//             handleGetHardwareToggleUpdate);
-//   server.on("/getconfig", HTTP_GET, handleGetConfig);
-//   server.on("/getdevices", HTTP_GET, handleGetDevices);
-//   server.on("/restart", HTTP_GET, handleRestart);
-
-//   server.onNotFound(handleNotFound);
-
-//   const char* headerKeys[] = {"User-Agent", "Cookie"};
-//   size_t headerKeysSize = sizeof(headerKeys) / sizeof(char*);
-//   server.collectHeaders(headerKeys, headerKeysSize);
-
-//   server.begin();
-//   Serial.println("HTTP server started");
-
-//   for (;;) {
-//     server.handleClient();
-//     checkDevices();
-//     checkScheduleButton();
-//     activityLed.update();
-//     delay(2);  // allow the cpu to switch to other tasks
-//   }
-// }
-
-// void checkDevices() {
-//   int updateMillis = false;
-
-//   for (auto& [_, device] : devices) {
-//     if (!scheduleButton.getState()) {
-//       device.checkButton();
-//     } else if (millis() - scheduleUpdateLastMillis > scheduleUpdatePeriode) {
-//       device.checkSchedule();
-//       // device.fetchShellyState();
-//       updateMillis = true;
-//     }
-//   }
-
-//   if (updateMillis) {
-//     scheduleUpdateLastMillis = millis();
-//   }
-// }
-
-// void checkScheduleButton() {
-//   bool newState = scheduleButton.checkButton();
-//   if (newState != scheduleButton.getState()) {
-//     scheduleButton.setState(newState);
-//   }
-// }
-
-// bool isAuthentified() {
-//   return true;
-
-//   if (server.hasHeader("Cookie")) {
-//     String cookie = server.header("Cookie");
-
-//     if (cookie.indexOf("sessionId=" + String(sessionId)) != -1) {
-//       Serial.println("Authentification Successful");
-//       return true;
-//     }
-//   }
-//   Serial.println("Authentification Failed");
-
-//   JsonDocument failedAuthJson;
-//   failedAuthJson["status"] = "error";
-//   failedAuthJson["data"] = "Not authentified !";
-
-//   String failedAuthString;
-//   serializeJson(failedAuthJson, failedAuthString);
-//   server.send(403, "application/json", failedAuthString);
-
-//   return false;
-// }
-
-// JsonDocument deserializePost(String body) {
-//   JsonDocument jsonResponse;
-//   DeserializationError err = deserializeJson(jsonResponse, body);
-
-//   switch (err.code()) {
-//     case DeserializationError::Ok:
-//       break;
-//     case DeserializationError::InvalidInput:
-//       server.send(500, "text/plain", "Invalid input");
-//       break;
-//     case DeserializationError::NoMemory:
-//       server.send(500, "text/plain", "Not enough memory");
-//       break;
-//     default:
-//       server.send(500, "text/plain", "Deserialization failed");
-//       break;
-//   }
-
-//   return jsonResponse;
-// }
+  if (!fileLast) {
+    String errorMessage = "Could not open last.jso for sending";
+    Serial.println(errorMessage);
+    sendError(errorMessage, type);
+    activityLed.setState("errorBlink");
+  }
+
+  String content;
+  while (fileLast.available()) {
+    content += fileLast.readString();
+  }
+
+  JsonDocument lastJson;
+  deserializeJson(lastJson, content);
+
+  JsonDocument getLastResponseJson;
+  getLastResponseJson["data"] = lastJson;
+  getLastResponseJson["type"] = type;
+
+  sendSuccess(getLastResponseJson);
+
+  fileLast.close();
+}
+
+void handleMonitoringGetHistorical(String totalDays) {
+  String type = monitoringGetHistoricalType;
+
+  int daysLength;
+
+  String* days = splitString(totalDays, ',', daysLength);
+
+  if (daysLength > 62) {
+    String errorMessage =
+        "Too many days requested [handleMonitoringGetHistorical]";
+    Serial.println(errorMessage);
+    sendError(errorMessage, type);
+
+    return;
+  }
+
+  sendMessage(startHistoricalType);
+
+  for (int i = 0; i < daysLength; i++) {
+    String fileName = "/historical/";
+    fileName += days[i];
+    fileName += ".jso";
+
+    Serial.println("fileName");
+    Serial.println(fileName);
+
+    File dayFile = SD.open(fileName, "r");
+
+    if (!dayFile) {
+      String errorMsg = "Could not open: " + String(fileName);
+      sendError(errorMsg, type);
+      Serial.println(errorMsg);
+      dayFile.close();
+    } else {
+      String content = historicalDataStreamType + "_";
+
+      while (dayFile.available()) {
+        content += dayFile.readString();
+      }
+
+      sendMessage(content);
+
+      dayFile.close();
+    }
+  }
+
+  sendMessage(endHistoricalType);
+
+  delete[] days;
+
+  return;
+}
+
+void togglePhCalibration(bool state) {
+  phCalibrationState = state;
+}
+
+void sendPhMvCalibrationUpdate() {
+  String type = phMvCalibrationType;
+
+  JsonDocument phMvCalibrationResponseJson;
+  phMvCalibrationResponseJson["data"] = phCalibrationMv;
+  phMvCalibrationResponseJson["type"] = type;
+
+  sendSuccess(phMvCalibrationResponseJson);
+}
+
+void ServerTaskCode2(void* pvParameters) {
+  Serial.println("Connecting to websocket server");
+  // for prod:
+  // webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
+  // for local :
+  // .18 = desktop
+  // .17 = laptop
+  webSocket.beginSSL("192.168.1.18", 3000, "/websocket");
+  webSocket.onEvent(webSocketEvent);
+  webSocket.setReconnectInterval(WEBSOCKET_RECONNECT_INTERVAL);
+
+  for (;;) {
+    webSocket.loop();
+    int millisNow = millis();
+    if (millisNow - sendLastMeasurementsMillis >
+        sendLastMeasurementsUpdatePeriode) {
+      handleMonitoringGetLastHistoricalUpdate();
+      sendLastMeasurementsMillis = millisNow;
+    }
+
+    if (millisNow - sendLiveMeasurementsLastMillis >
+        sendLiveMeasurementsUpdatePeriode) {
+      handleMonitoringGetLive();
+      sendLiveMeasurementsLastMillis = millisNow;
+    }
+
+    if (phCalibrationState) {
+      if (millisNow - phMvCalibrationLastMillis > phMvCalibrationPeriode) {
+        sendPhMvCalibrationUpdate();
+        phMvCalibrationLastMillis = millisNow;
+      }
+    }
+
+    if (millisNow - scheduleOnLastMillis > scheduleOnPeriode) {
+      checkForAutoScheduleOn();
+      scheduleOnLastMillis = millisNow;
+    }
+
+    delay(2);
+  }
+}
+
+JsonDocument deserializePost(String body) {
+  JsonDocument jsonResponse;
+  DeserializationError err = deserializeJson(jsonResponse, body);
+
+  switch (err.code()) {
+    case DeserializationError::Ok:
+      break;
+    case DeserializationError::InvalidInput:
+      server.send(500, "text/plain", "Invalid input");
+      break;
+    case DeserializationError::NoMemory:
+      server.send(500, "text/plain", "Not enough memory");
+      break;
+    default:
+      server.send(500, "text/plain", "Deserialization failed");
+      break;
+  }
+
+  return jsonResponse;
+}

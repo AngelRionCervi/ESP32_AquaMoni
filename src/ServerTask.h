@@ -1,44 +1,53 @@
-// #pragma once
-// #include <ArduinoJson.h>
-// #include <ESPmDNS.h>
-// #include <SD.h>
+#pragma once
+#include <ArduinoJson.h>
+#include <ESPmDNS.h>
+#include <SD.h>
 
-// #include "Device.h"
-// #include "constants.h"
-// #include "global.h"
-// #include "secrets.h"
-// #include "utils.h"
+#include "Device.h"
+#include "constants.h"
+#include "global.h"
+#include "utils.h"
 
-// void handleLast();
+void sendMessage(String message);
 
-// void handleHistorical();
+void sendSuccess(JsonDocument& successJson);
 
-// void handleUpdateConfig();
+void webSocketEvent(WStype_t type, uint8_t* payload, size_t length);
 
-// void handleNotFound();
+void sendError(String errorMessage, String type);
 
-// void handleDeviceManualToggle();
+void sendError(String errorMessage, String type, JsonDocument& infos);
 
-// void handleScheduleManualToggle();
+void sendHandShake();
 
-// void handleGetDevices();
+void sendInitBox();
 
-// void handleGetConfig();
+void handleUpdateConfig(JsonVariant newConfigJson);
 
-// void handleGetScheduleState();
+void handleDeviceManualToggle(String deviceId);
 
-// void handleLogin();
+void handleScheduleManualToggle();
 
-// void handlePing();
+void handleGetDevices();
 
-// void handleRestart();
+void handleGetConfig();
 
-// void ServerTaskCode(void* pvParameters);
+void handleGetScheduleState();
 
-// void checkDevices();
+void handlePing();
 
-// bool isAuthentified();
+void handleRestart();
 
-// void checkScheduleButton();
+void ServerTaskCode2(void* pvParameters);
 
-// JsonDocument deserializePost(String body);
+void handleMonitoringGetLastHistoricalUpdate();
+
+void handleMonitoringGetLive();
+
+void handleMonitoringGetHistorical(String argValue);
+
+void togglePhCalibration(bool state);
+
+void sendPhMvCalibrationUpdate();
+
+JsonDocument deserializePost(String body);

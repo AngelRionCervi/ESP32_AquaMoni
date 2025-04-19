@@ -14,6 +14,7 @@ class Device {
   String smartPlugType;
   JsonDocument schedule;
   bool smartPlugState;
+  bool smartPlugOnline;
 
  public:
   Device(const char* _address,

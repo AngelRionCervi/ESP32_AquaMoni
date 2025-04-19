@@ -8,14 +8,12 @@
 #include <WebSocketsClient.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
-
 #include <map>
 #include <unordered_map>
-
 #include "BtSetup.h"
 #include "Device.h"
 #include "SensorTask.h"
-#include "ServerTask2.h"
+#include "ServerTask.h"
 #include "constants.h"
 #include "global.h"
 
@@ -116,7 +114,7 @@ void setupDevices(JsonDocument& configJson) {
   JsonArray deviceArray = configJson["devices"];
 
   for (auto const& [_, value] : ledMap) {
-    // pinMode(value, OUTPUT);
+    // pinMode(value, OUTPUT); // only for prod as it stops Serial logging
     // digitalWrite(value, LOW);
   }
 
@@ -156,11 +154,6 @@ void setup(void) {
     bt_begin();
     return;
   }
-
-  // if (true) {
-  //   bt_begin();
-  //   return;
-  // }
 
   setupWifi();
   setupDateTime();

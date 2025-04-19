@@ -17,7 +17,7 @@ void SmartPlug::toggleState() {
   setState(!state);
 }
 
-bool SmartPlug::fetchState() {
+JsonDocument SmartPlug::fetchInfo() {
   HttpClient httpClient = HttpClient(wifiClient, address, port);
   String request = smartPlugRequests[smartPlugType].getState;
 
@@ -25,31 +25,38 @@ bool SmartPlug::fetchState() {
   int statusCode = httpClient.responseStatusCode();
   String response = httpClient.responseBody();
 
+  JsonDocument doc;
+
   if (statusCode != 200) {
     String errorMessage =
         String("[SmartPlug] (init) could not get response from: ") + name;
     Serial.println(errorMessage);
     Serial.print("Status code: ");
     Serial.println(statusCode);
+    doc["isOnline"] = false;
 
-    return false;
+    return doc;
   }
 
-  JsonDocument doc;
-  deserializeJson(doc, response);
+  doc["isOnline"] = true;
+
+  JsonDocument responseDoc;
+  deserializeJson(responseDoc, response);
 
   if (smartPlugType == PLUG_TASMOTA_NAME) {
-    String isOn = doc["POWER"].as<String>();
+    String isOn = responseDoc["POWER"].as<String>();
     state = isOn == "ON";
   } else if (smartPlugType == PLUG_SHELLY_S_NAME) {
-    bool isOn = doc["ison"].as<bool>();
+    bool isOn = responseDoc["ison"].as<bool>();
     state = isOn;
   }
 
-  return state;
+  doc["state"] = state;
+
+  return doc;
 }
 
-bool SmartPlug::init(const char* _address,
+void SmartPlug::init(const char* _address,
                      int _port,
                      WiFiClient _wifiClient,
                      String _name,
@@ -60,9 +67,8 @@ bool SmartPlug::init(const char* _address,
   name = _name;
   smartPlugType = _smartPlugType;
 
-  this->fetchState();
-
+  JsonDocument plugInfo = this->fetchInfo();
+  state = plugInfo["state"].as<bool>();
+  isOnline = plugInfo["isOnline"].as<bool>();
   hasInit = true;
-
-  return state;
 }

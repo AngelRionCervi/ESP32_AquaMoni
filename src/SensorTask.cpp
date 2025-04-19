@@ -23,17 +23,6 @@ void SensorTaskCode(void* pvParameters) {
       liveMeasurementsLastMillis = millisNow;
     }
 
-    if (millisNow - devicesStatesUpdateLastMillis >
-        devicesStatesUpdatePeriode) {
-      balance_fetchDevicesStates();
-      devicesStatesUpdateLastMillis = millisNow;
-    }
-
-    // if (millisNow - scheduleOnLastMillis > scheduleOnPeriode) {
-    //   balance_checkForAutoScheduleOn();
-    //   scheduleOnLastMillis = millisNow;
-    // }
-
     delay(2);
   }
 }
@@ -58,9 +47,6 @@ void takeMeasurements(PhMeasure& phMeasure,
 
   monitoringLiveMap["ph"] = ph;
   monitoringLiveMap["temp"] = temp;
-
-  // Serial.println("temp: " + String(temp));
-  // Serial.println("ph: " + String(ph));
 
   if (saveToSd) {
     writeToSd(ph, temp);
@@ -118,21 +104,4 @@ void writeToHistorical(JsonDocument* currentData) {
     Serial.println("error writing historical.jso");
     activityLed.setState("errorBlink");
   }
-}
-
-void balance_fetchDevicesStates() {
-  //   for (auto& [_, device] : devices) {
-  //     device.fetchSmartPlugState();
-  //   }
-}
-
-void balance_checkForAutoScheduleOn() {
-  // if (scheduleButton.getState() || autoSchedulesOnAfter == 0) {
-  //   return;
-  // }
-
-  // if (DateTime.now() - scheduleButton.getScheduleOnStartTime() >
-  //     autoSchedulesOnAfter) {
-  //   scheduleButton.setState(true);
-  // }
 }

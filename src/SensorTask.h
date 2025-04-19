@@ -18,7 +18,3 @@ void writeToSd(float ph, float temp);
 void writeToLast(JsonDocument* currentData);
 
 void writeToHistorical(JsonDocument* currentData);
-
-void balance_fetchDevicesStates();
-
-void balance_checkForAutoScheduleOn();
