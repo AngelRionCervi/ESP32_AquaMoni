@@ -31,7 +31,7 @@ class Device {
   bool fetchSmartPlugState();
   void setSmartPlugState(bool _state);
   void toggleSmartPlugState();
-  void checkButton();
+  bool checkButton();
   void checkSchedule();
   void updateLed();
 };

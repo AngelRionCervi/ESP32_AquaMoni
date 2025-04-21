@@ -17,6 +17,7 @@ int measurementsUpdatePeriode = 10 * 60 * 1000;  // every 10 mins
 int updateLiveMeasurementsPeriode = 5000;
 int sendLiveMeasurementsUpdatePeriode = 5000;
 int sendLastMeasurementsUpdatePeriode = 10 * 60 * 1000;  // every 10 mins
+int checkHardwareButtonUpdatePeriode = 50;
 int scheduleOnPeriode = 1000;
 int phMvCalibrationPeriode = 1000;
 int liveMeasurementsLastMillis = 0;
@@ -29,6 +30,7 @@ int sendLastMeasurementsMillis = 0;
 int phMvCalibrationLastMillis = 0;
 int phCalibration4Mv = 0;
 int phCalibration7Mv = 0;
+int checkHardwareButtonUpdateMillis = 0;
 
 String wifiSSID;
 String wifiPass;

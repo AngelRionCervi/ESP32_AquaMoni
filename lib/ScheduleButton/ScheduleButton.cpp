@@ -38,9 +38,11 @@ bool ScheduleButton::checkButton() {
   if (debouncer.falling()) {
     Serial.println("toggle schedules: " + String(state));
     this->setState(!state);
+
+    return true;
   }
-  
-  return state;
+
+  return false;
 }
 
 bool ScheduleButton::getState() {

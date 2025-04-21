@@ -114,8 +114,8 @@ void setupDevices(JsonDocument& configJson) {
   JsonArray deviceArray = configJson["devices"];
 
   for (auto const& [_, value] : ledMap) {
-    // pinMode(value, OUTPUT); // only for prod as it stops Serial logging
-    // digitalWrite(value, LOW);
+    pinMode(value, OUTPUT); // only for prod as it stops Serial logging
+    digitalWrite(value, LOW);
   }
 
   for (int i = 0; i < deviceArray.size(); i++) {

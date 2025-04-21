@@ -19,8 +19,8 @@ Device::Device(const char* _address,
   button = _button;
   smartPlugType = _smartPlugType;
 
-  // pinMode(_buttonPin, INPUT_PULLUP);
-  // pinMode(_ledPin, OUTPUT);
+  pinMode(_buttonPin, INPUT_PULLUP);
+  pinMode(_ledPin, OUTPUT);
 
   debouncer = ADebouncer();
   debouncer.mode(DELAYED, 10, LOW);
@@ -29,7 +29,7 @@ Device::Device(const char* _address,
   smartPlug.init(_address, _port, _wifiClient, _name, _smartPlugType);
   smartPlugState = smartPlug.state;
   smartPlugOnline = smartPlug.isOnline;
-  // digitalWrite(ledPin, smartPlugState);
+  digitalWrite(ledPin, smartPlugState);
 }
 
 SmartPlug Device::getSmartPlugInfo() {
@@ -48,15 +48,17 @@ void Device::toggleSmartPlugState() {
   this->updateLed();
 }
 
-void Device::checkButton() {
+bool Device::checkButton() {
   debouncer.debounce(digitalRead(buttonPin));
   if (debouncer.falling()) {
-    Serial.print("toggle: ");
-    Serial.println(name);
     smartPlugState = !smartPlugState;
     smartPlug.setState(smartPlugState);
     this->updateLed();
+
+    return true;
   }
+
+  return false;
 }
 
 void Device::updateLed() {

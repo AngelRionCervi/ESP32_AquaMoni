@@ -6,6 +6,7 @@ String updateConfigType = "box_update_config";
 String deviceToggleType = "box_device_manual_toggle";
 String scheduleToggleType = "box_schedule_toggle";
 String getDevicesInfoType = "box_get_devices_infos";
+String hardwareToggleType = "box_hardware_toggle";
 String getConfigType = "box_get_config";
 String getScheduleStateType = "box_get_schedule_state";
 String pingType = "box_ping";
@@ -181,6 +182,9 @@ void handleScheduleManualToggle() {
   JsonDocument donePayloadJson;
   donePayloadJson["data"] = scheduleButton.getState();
   donePayloadJson["type"] = scheduleToggleType;
+
+  Serial.println("Schedule button pressed");
+  Serial.println("Schedule state: " + String(scheduleButton.getState()));
 
   sendSuccess(donePayloadJson);
 
@@ -433,6 +437,48 @@ void sendPhMvCalibrationUpdate() {
   sendSuccess(phMvCalibrationResponseJson);
 }
 
+void handleHardwareButtons() {
+  bool hasOneDeviceToggle = false;
+  bool hasScheduleToggle = scheduleButton.checkButton();
+
+  for (auto& [_, device] : devices) {
+    bool hasDeviceToggle = device.checkButton();
+
+    if (hasDeviceToggle) {
+      hasOneDeviceToggle = true;
+      break;
+    }
+  }
+
+  if (!hasOneDeviceToggle && !hasScheduleToggle) {
+    return;
+  }
+
+  JsonDocument devicesJson;
+  JsonArray devicesStateArray = devicesJson.to<JsonArray>();
+
+  for (auto& [id, device] : devices) {
+    SmartPlug deviceSmartplug = device.getSmartPlugInfo();
+    JsonDocument deviceJson;
+    deviceJson["id"] = id;
+    deviceJson["state"] = deviceSmartplug.state;
+    devicesStateArray.add(deviceJson);
+  }
+
+  if (hasScheduleToggle) {
+    JsonDocument scheduleJson;
+    scheduleJson["id"] = "schedule";
+    scheduleJson["state"] = scheduleButton.getState();
+    devicesStateArray.add(scheduleJson);
+  }
+
+  JsonDocument updateResponseJson;
+  updateResponseJson["data"] = devicesStateArray;
+  updateResponseJson["type"] = hardwareToggleType;
+
+  sendSuccess(updateResponseJson);
+}
+
 void ServerTaskCode2(void* pvParameters) {
   Serial.println("Connecting to websocket server");
   // for prod:
@@ -469,6 +515,12 @@ void ServerTaskCode2(void* pvParameters) {
     if (millisNow - scheduleOnLastMillis > scheduleOnPeriode) {
       checkForAutoScheduleOn();
       scheduleOnLastMillis = millisNow;
+    }
+
+    if (millisNow - checkHardwareButtonUpdateMillis >
+        checkHardwareButtonUpdatePeriode) {
+      handleHardwareButtons();
+      checkHardwareButtonUpdateMillis = millisNow;
     }
 
     delay(2);

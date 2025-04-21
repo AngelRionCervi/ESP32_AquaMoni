@@ -50,4 +50,6 @@ void togglePhCalibration(bool state);
 
 void sendPhMvCalibrationUpdate();
 
+void handleHardwareButtons();
+
 JsonDocument deserializePost(String body);
