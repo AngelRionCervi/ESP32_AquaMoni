@@ -167,7 +167,7 @@ void setup(void) {
 
   Serial.println("Starting tasks...");
   xTaskCreatePinnedToCore(
-      ServerTaskCode2, /* Task function. */
+      ServerTaskCode, /* Task function. */
       "ServerTask",    /* name of task. */
       10000,           /* Stack size of task */
       NULL,            /* parameter of the task */

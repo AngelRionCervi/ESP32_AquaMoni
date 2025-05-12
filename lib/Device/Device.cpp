@@ -72,7 +72,8 @@ void Device::updateLed() {
 void Device::checkSchedule() {
   if (schedule.is<bool>()) {
     bool scheduleAsBool = schedule.as<bool>();
-    smartPlug.setState(scheduleAsBool);
+    smartPlugState = scheduleAsBool;
+    smartPlug.setState(smartPlugState);
   } else if (schedule.is<JsonArray>()) {
     JsonArrayConst scheduleAsArray = schedule.as<JsonArrayConst>();
 
@@ -85,8 +86,10 @@ void Device::checkSchedule() {
 
     unsigned int fullDayMinutes = (hours * 60) + minutes;
 
-    smartPlug.setState(fullDayMinutes >= start && fullDayMinutes <= end);
+    smartPlugState = fullDayMinutes >= start && fullDayMinutes <= end;
+    smartPlug.setState(smartPlugState);
   }
+  this->updateLed();
 }
 
 bool Device::fetchSmartPlugState() {

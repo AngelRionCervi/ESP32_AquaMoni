@@ -28,17 +28,17 @@ void handleDeviceManualToggle(String deviceId);
 
 void handleScheduleManualToggle();
 
-void handleGetDevices();
+void sendDevicesInfos();
 
-void handleGetConfig();
+void sendConfig();
 
-void handleGetScheduleState();
+void sendScheduleState();
 
 void handlePing();
 
 void handleRestart();
 
-void ServerTaskCode2(void* pvParameters);
+void ServerTaskCode(void* pvParameters);
 
 void handleMonitoringGetLastHistoricalUpdate();
 
@@ -51,5 +51,7 @@ void togglePhCalibration(bool state);
 void sendPhMvCalibrationUpdate();
 
 void handleHardwareButtons();
+
+void checkForCorrectDevicesStates();
 
 JsonDocument deserializePost(String body);

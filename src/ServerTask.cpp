@@ -42,11 +42,11 @@ void messageToMethods(String message) {
   } else if (type == scheduleToggleType) {
     handleScheduleManualToggle();
   } else if (type == getDevicesInfoType) {
-    handleGetDevices();
+    sendDevicesInfos();
   } else if (type == getConfigType) {
-    handleGetConfig();
+    sendConfig();
   } else if (type == getScheduleStateType) {
-    handleGetScheduleState();
+    sendScheduleState();
   } else if (type == pingType) {
     handlePing();
   } else if (type == restartType) {
@@ -118,9 +118,9 @@ void sendHandShake() {
 }
 
 void sendInitBox() {
-  handleGetConfig();
-  handleGetDevices();
-  handleGetScheduleState();
+  sendConfig();
+  sendDevicesInfos();
+  sendScheduleState();
 }
 
 void handleUpdateConfig(JsonVariant newConfigJson) {
@@ -179,14 +179,20 @@ void handleDeviceManualToggle(String deviceId) {
 void handleScheduleManualToggle() {
   scheduleButton.toggleState();
 
+  bool newScheduleState = scheduleButton.getState();
+
   JsonDocument donePayloadJson;
-  donePayloadJson["data"] = scheduleButton.getState();
+  donePayloadJson["data"] = newScheduleState;
   donePayloadJson["type"] = scheduleToggleType;
 
   Serial.println("Schedule button pressed");
   Serial.println("Schedule state: " + String(scheduleButton.getState()));
 
   sendSuccess(donePayloadJson);
+
+  if (newScheduleState) {
+    checkForCorrectDevicesStates();
+  }
 
   return;
 }
@@ -204,11 +210,13 @@ void checkForAutoScheduleOn() {
     donePayloadJson["data"] = true;
     donePayloadJson["type"] = scheduleToggleType;
 
+    checkForCorrectDevicesStates();
+
     sendSuccess(donePayloadJson);
   }
 }
 
-void handleGetDevices() {
+void sendDevicesInfos() {
   JsonDocument devicesJson;
   JsonArray devicesStateArray = devicesJson.to<JsonArray>();
 
@@ -231,12 +239,12 @@ void handleGetDevices() {
   return;
 }
 
-void handleGetConfig() {
+void sendConfig() {
   String type = getConfigType;
   File fileConfig = SD.open(FILE_CONFIG, "r");
 
   if (!fileConfig) {
-    String errorMessage = "Could not open config.jso in [handleGetConfig]";
+    String errorMessage = "Could not open config.jso in [sendConfig]";
     Serial.println(errorMessage);
     sendError(errorMessage, type);
     return;
@@ -259,7 +267,7 @@ void handleGetConfig() {
   return;
 }
 
-void handleGetScheduleState() {
+void sendScheduleState() {
   String type = getScheduleStateType;
   JsonDocument getScheduleStateResponseJson;
   getScheduleStateResponseJson["data"] = scheduleButton.getState();
@@ -294,37 +302,6 @@ void handleRestart() {
   ESP.restart();
 
   return;
-}
-
-void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
-  switch (type) {
-    case WStype_DISCONNECTED:
-      Serial.println("[WSc] Disconnected!");
-      break;
-    case WStype_CONNECTED:
-      Serial.print("[WSc] Connected to url: ");
-      Serial.println((char*)payload);
-
-      sendHandShake();
-      break;
-    case WStype_TEXT:
-      Serial.print("[WSc] get text: ");
-      Serial.println((char*)payload);
-
-      messageToMethods((char*)payload);
-      break;
-    case WStype_BIN:
-      Serial.print("[WSc] get binary, length: ");
-      Serial.println(length);
-
-      break;
-    case WStype_ERROR:
-    case WStype_FRAGMENT_TEXT_START:
-    case WStype_FRAGMENT_BIN_START:
-    case WStype_FRAGMENT:
-    case WStype_FRAGMENT_FIN:
-      break;
-  }
 }
 
 void handleMonitoringGetLive() {
@@ -440,6 +417,27 @@ void sendPhMvCalibrationUpdate() {
 void handleHardwareButtons() {
   bool hasOneDeviceToggle = false;
   bool hasScheduleToggle = scheduleButton.checkButton();
+  bool scheduleState = scheduleButton.getState();
+
+  JsonDocument devicesJson;
+  JsonDocument updateResponseJson;
+  JsonArray devicesStateArray = devicesJson.to<JsonArray>();
+
+  if (hasScheduleToggle) {
+    JsonDocument scheduleJson;
+    scheduleJson["id"] = "schedule";
+    scheduleJson["state"] = scheduleState;
+    devicesStateArray.add(scheduleJson);
+  }
+
+  if (scheduleState) {
+    checkForCorrectDevicesStates();
+    updateResponseJson["data"] = devicesStateArray;
+    updateResponseJson["type"] = hardwareToggleType;
+    sendSuccess(updateResponseJson);
+
+    return;
+  }
 
   for (auto& [_, device] : devices) {
     bool hasDeviceToggle = device.checkButton();
@@ -454,9 +452,6 @@ void handleHardwareButtons() {
     return;
   }
 
-  JsonDocument devicesJson;
-  JsonArray devicesStateArray = devicesJson.to<JsonArray>();
-
   for (auto& [id, device] : devices) {
     SmartPlug deviceSmartplug = device.getSmartPlugInfo();
     JsonDocument deviceJson;
@@ -465,21 +460,55 @@ void handleHardwareButtons() {
     devicesStateArray.add(deviceJson);
   }
 
-  if (hasScheduleToggle) {
-    JsonDocument scheduleJson;
-    scheduleJson["id"] = "schedule";
-    scheduleJson["state"] = scheduleButton.getState();
-    devicesStateArray.add(scheduleJson);
-  }
-
-  JsonDocument updateResponseJson;
   updateResponseJson["data"] = devicesStateArray;
   updateResponseJson["type"] = hardwareToggleType;
 
   sendSuccess(updateResponseJson);
 }
 
-void ServerTaskCode2(void* pvParameters) {
+void checkForCorrectDevicesStates() {
+  if (!scheduleButton.getState()) {
+    return;
+  }
+  for (auto& [_, device] : devices) {
+    device.checkSchedule();
+  }
+
+  sendDevicesInfos();
+}
+
+void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+  switch (type) {
+    case WStype_DISCONNECTED:
+      Serial.println("[WSc] Disconnected!");
+      break;
+    case WStype_CONNECTED:
+      Serial.print("[WSc] Connected to url: ");
+      Serial.println((char*)payload);
+
+      sendHandShake();
+      break;
+    case WStype_TEXT:
+      Serial.print("[WSc] get text: ");
+      Serial.println((char*)payload);
+
+      messageToMethods((char*)payload);
+      break;
+    case WStype_BIN:
+      Serial.print("[WSc] get binary, length: ");
+      Serial.println(length);
+
+      break;
+    case WStype_ERROR:
+    case WStype_FRAGMENT_TEXT_START:
+    case WStype_FRAGMENT_BIN_START:
+    case WStype_FRAGMENT:
+    case WStype_FRAGMENT_FIN:
+      break;
+  }
+}
+
+void ServerTaskCode(void* pvParameters) {
   Serial.println("Connecting to websocket server");
   // for prod:
   // webSocket.begin("dash.aqua-dash.com", 80, "/websocket");
@@ -492,7 +521,9 @@ void ServerTaskCode2(void* pvParameters) {
 
   for (;;) {
     webSocket.loop();
+
     int millisNow = millis();
+
     if (millisNow - sendLastMeasurementsMillis >
         sendLastMeasurementsUpdatePeriode) {
       handleMonitoringGetLastHistoricalUpdate();
@@ -521,6 +552,12 @@ void ServerTaskCode2(void* pvParameters) {
         checkHardwareButtonUpdatePeriode) {
       handleHardwareButtons();
       checkHardwareButtonUpdateMillis = millisNow;
+    }
+
+    if (millisNow - devicesScheduleOnStateUpdateMillis >
+        devicesScheduleOnStateUpdatePeriode) {
+      checkForCorrectDevicesStates();
+      devicesScheduleOnStateUpdateMillis = millisNow;
     }
 
     delay(2);

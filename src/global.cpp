@@ -11,8 +11,7 @@ WiFiClient wifiClient;
 WebServer server(80);
 WebSocketsClient webSocket;
 
-int scheduleUpdatePeriode = 3000;
-int devicesStatesUpdatePeriode = 10000;
+int devicesScheduleOnStateUpdatePeriode = 10000;
 int measurementsUpdatePeriode = 10 * 60 * 1000;  // every 10 mins
 int updateLiveMeasurementsPeriode = 5000;
 int sendLiveMeasurementsUpdatePeriode = 5000;
@@ -23,7 +22,7 @@ int phMvCalibrationPeriode = 1000;
 int liveMeasurementsLastMillis = 0;
 int sendLiveMeasurementsLastMillis = 0;
 int scheduleUpdateLastMillis = 0;
-int devicesStatesUpdateLastMillis = 0;
+int devicesScheduleOnStateUpdateMillis = 0;
 int measurementsUpdateLastMillis = 0;
 int scheduleOnLastMillis = 0;
 int sendLastMeasurementsMillis = 0;
