@@ -30,11 +30,13 @@ void setupWifi() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifiSSID, wifiPass);
   Serial.print("WiFi Connecting...");
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED)
+  {
     activityLed.update();
     delay(500);
     wifiTries++;
-    if (wifiTries > MAX_WIFI_TRIES) {
+    if (wifiTries > MAX_WIFI_TRIES)
+    {
       Serial.println("Failed to connect to WiFi");
       activityLed.setState("error");
       activityLed.update();
@@ -50,13 +52,16 @@ void setupDateTime() {
   DateTime.setTimeZone("UTC-2");
   DateTime.begin();
   activityLed.update();
-  if (!DateTime.isTimeValid()) {
+  if (!DateTime.isTimeValid())
+  {
     Serial.println("Failed to get time from server.");
     activityLed.setState("error");
     activityLed.update();
     delay(5000);
     setupDateTime();
-  } else {
+  }
+  else
+  {
     activityLed.update();
     Serial.printf("Date Now is %s\n", DateTime.toISOString().c_str());
     Serial.printf("Timestamp is %ld\n", DateTime.now());
@@ -64,7 +69,8 @@ void setupDateTime() {
 }
 
 void setupSD() {
-  if (!SD.begin()) {
+  if (!SD.begin())
+  {
     Serial.println("SD card initialization failed!");
     activityLed.setState("error");
     activityLed.update();
@@ -77,14 +83,16 @@ JsonDocument getConfig() {
   File fileConfig = SD.open(FILE_CONFIG, "r");
   activityLed.update();
 
-  if (!fileConfig) {
+  if (!fileConfig)
+  {
     Serial.println("Could not open config.jso [loadConfig]");
     activityLed.setState("error");
     activityLed.update();
   }
 
   String configString;
-  while (fileConfig.available()) {
+  while (fileConfig.available())
+  {
     configString += fileConfig.readString();
   }
 
@@ -104,21 +112,25 @@ void loadConfig(JsonDocument& configJson) {
   wifiSSID = secretsJson["wifiSSID"].as<String>();
   wifiPass = secretsJson["wifiPass"].as<String>();
   serverPass = secretsJson["serverPass"].as<String>();
+  wsServerIp = secretsJson["wsServerIp"].as<String>();
+  wsServerPort = secretsJson["wsServerPort"] ? secretsJson["wsServerPort"].as<int>() : DEFAULT_WS_PORT;
 
   JsonObject phCalibration = settingsConfig["phCalibration"];
-  phCalibration4Mv = phCalibration["ph4Mv"].as<int>() || 0;
-  phCalibration7Mv = phCalibration["ph7Mv"].as<int>() || 0;
+  phCalibration4Mv = phCalibration["ph4Mv"] ? phCalibration["ph4Mv"].as<int>() : 0;
+  phCalibration7Mv = phCalibration["ph7Mv"] ? phCalibration["ph7Mv"].as<int>() : 0;
 }
 
 void setupDevices(JsonDocument& configJson) {
   JsonArray deviceArray = configJson["devices"];
 
-  for (auto const& [_, value] : ledMap) {
-    pinMode(value, OUTPUT); // only for prod as it stops Serial logging
-    digitalWrite(value, LOW);
+  for (auto const& [_, value] : ledMap)
+  {
+    // pinMode(value, OUTPUT); // only for prod as it stops Serial logging
+    // digitalWrite(value, LOW);
   }
 
-  for (int i = 0; i < deviceArray.size(); i++) {
+  for (int i = 0; i < deviceArray.size(); i++)
+  {
     JsonObject deviceObj = deviceArray[i];
     const char* name = deviceObj["name"].as<const char*>();
     const char* ip = deviceObj["ip"].as<const char*>();
@@ -130,7 +142,7 @@ void setupDevices(JsonDocument& configJson) {
     JsonDocument scheduleCopy = schedule;
 
     Device newDevice(ip, name, smartPlugType, id, ledMap[button],
-                     buttonMap[button], button, scheduleCopy, wifiClient);
+      buttonMap[button], button, scheduleCopy, wifiClient);
     devices.emplace(id, newDevice);
     activityLed.update();
   }
@@ -141,7 +153,8 @@ void setup(void) {
   activityLed.setState("okBlink");
   activityLed.update();
 
-  while (!Serial) {  // to remove for prod
+  while (!Serial)
+  { // to remove for prod
     activityLed.update();
     delay(50);
   };
@@ -150,7 +163,8 @@ void setup(void) {
   JsonDocument config = getConfig();
   loadConfig(config);
 
-  if (wifiSSID == "" || !wifiSSID) {
+  if (wifiSSID == "" || !wifiSSID)
+  {
     bt_begin();
     return;
   }
@@ -167,24 +181,24 @@ void setup(void) {
 
   Serial.println("Starting tasks...");
   xTaskCreatePinnedToCore(
-      ServerTaskCode, /* Task function. */
-      "ServerTask",    /* name of task. */
-      10000,           /* Stack size of task */
-      NULL,            /* parameter of the task */
-      1,               /* priority of the task */
-      &ServerTask,     /* Task handle to keep track of created task */
-      0);              /* pin task to core 0 */
+    ServerTaskCode, /* Task function. */
+    "ServerTask",   /* name of task. */
+    10000,          /* Stack size of task */
+    NULL,           /* parameter of the task */
+    1,              /* priority of the task */
+    &ServerTask,    /* Task handle to keep track of created task */
+    0);             /* pin task to core 0 */
 
   xTaskCreatePinnedToCore(
-      SensorTaskCode, /* Task function. */
-      "SensorTask",   /* name of task. */
-      10000,          /* Stack size of task */
-      NULL,           /* parameter of the task */
-      1,              /* priority of the task */
-      &SensorTask,    /* Task handle to keep track of created task */
-      1);             /* pin task to core 1 */
+    SensorTaskCode, /* Task function. */
+    "SensorTask",   /* name of task. */
+    10000,          /* Stack size of task */
+    NULL,           /* parameter of the task */
+    1,              /* priority of the task */
+    &SensorTask,    /* Task handle to keep track of created task */
+    1);             /* pin task to core 1 */
 }
 
 void loop(void) {
-  delay(2);  // allow the cpu to switch to other tasks
+  delay(2); // allow the cpu to switch to other tasks
 }

@@ -35,6 +35,8 @@ String wifiSSID;
 String wifiPass;
 String serverPass;
 String boxId;
+String wsServerIp;
+int wsServerPort = DEFAULT_WS_PORT;
 int autoSchedulesOnAfter;
 bool enableMonitoring;
 bool phCalibrationState;

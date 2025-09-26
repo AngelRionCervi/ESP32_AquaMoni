@@ -54,5 +54,7 @@ extern int phCalibrationMv;
 extern int phCalibration4Mv;
 extern int phCalibration7Mv;
 extern String boxId;
+extern String wsServerIp;
+extern int wsServerPort;
 
 #endif

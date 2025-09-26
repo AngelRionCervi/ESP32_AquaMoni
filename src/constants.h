@@ -8,6 +8,7 @@
 #define FILE_CONFIG "/config.jso"
 #define MAX_WIFI_TRIES 20
 #define WEBSOCKET_RECONNECT_INTERVAL 5000
+#define DEFAULT_WS_PORT 3000
 
 #define BUTTON_0_PIN 32
 #define BUTTON_1_PIN 27

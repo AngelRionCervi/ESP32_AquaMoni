@@ -515,7 +515,7 @@ void ServerTaskCode(void* pvParameters) {
   // for local :
   // .18 = desktop
   // .17 = laptop
-  webSocket.beginSSL("192.168.1.18", 3000, "/websocket");
+  webSocket.beginSSL(wsServerIp, wsServerPort, "/websocket");
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(WEBSOCKET_RECONNECT_INTERVAL);
 
